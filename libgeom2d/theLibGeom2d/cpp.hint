@@ -1,0 +1,2 @@
+#define THELIBGEOM2D_API __declspec(dllexport)
+#define THELIBGEOM2D_API __declspec(dllimport)
