@@ -14,29 +14,16 @@ namespace geom2d
     double m_ymin = 0.0;
     double m_ymax = 0.0;
   public:
-
-    double xmin() const
+    void clear()
     {
-      return m_xmin;
-    }
-
-    double xmax() const
-    {
-      return m_xmax;
-    }
-
-    double ymin() const
-    {
-      return m_ymin;
-    }
-
-    double ymax() const
-    {
-      return m_ymax;
+      m_xmin = 0.0;
+      m_xmax = 0.0;
+      m_ymin = 0.0;
+      m_ymax = 0.0;
     }
 
     template <class pointsContainer>
-    aabb(const pointsContainer & points)
+    void reset(const pointsContainer& points)
     {
       if (points.end() == points.begin())
       {
@@ -77,6 +64,42 @@ namespace geom2d
           // nothing to do
         }
       }
+    }
+
+    double xmin() const
+    {
+      return m_xmin;
+    }
+
+    double xmax() const
+    {
+      return m_xmax;
+    }
+
+    double ymin() const
+    {
+      return m_ymin;
+    }
+
+    double ymax() const
+    {
+      return m_ymax;
+    }
+
+    double lengthx() const
+    {
+      return m_xmax - m_xmin;
+    }
+
+    double lengthy() const
+    {
+      return m_ymax - m_ymin;
+    }
+
+    template <class pointsContainer>
+    aabb(const pointsContainer & points)
+    {
+      reset(points);
     }
     
   };

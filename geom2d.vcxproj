@@ -138,18 +138,22 @@
     <ClCompile Include="point.cpp" />
     <ClCompile Include="segment.cpp" />
     <ClCompile Include="segmentCurve.cpp" />
+    <ClCompile Include="StatOfCurvePiece.cpp" />
     <ClCompile Include="vector.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AABB.h" />
+    <ClInclude Include="Axis.h" />
     <ClInclude Include="baseCurve.h" />
     <ClInclude Include="bezierCurve2d.h" />
     <ClInclude Include="common.h" />
     <ClInclude Include="curveIntersector.h" />
     <ClInclude Include="findFunctionRoots.h" />
+    <ClInclude Include="IntersecctionSolutionType.h" />
     <ClInclude Include="math.h" />
     <ClInclude Include="point.h" />
     <ClInclude Include="segmentCurve.h" />
+    <ClInclude Include="StatOfCurvePiece.h" />
     <ClInclude Include="vector.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

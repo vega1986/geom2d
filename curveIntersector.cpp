@@ -3,6 +3,8 @@
 #include "vector.h"
 #include "segmentCurve.h"
 #include "math.h"
+#include "Axis.h"
+#include "StatOfCurvePiece.h"
 
 #include <vector>
 #include <algorithm>
@@ -394,7 +396,7 @@ bool geom2d::curveIntersector::performPointXPoint(const point p, const point q)
 
 //-----------------------------------------------------------------------------
 
-std::optional<std::tuple<geom2d::point, double, double>>
+std::optional<geom2d::IntersecctionSolutionType>
   geom2d::curveIntersector::execPointAndPoint
   (
     const double tminOfPoint1,
@@ -569,7 +571,7 @@ std::optional<double> geom2d::curveIntersector::performPointVSAnyAlongX(
 
 //-----------------------------------------------------------------------------
 
-std::optional<std::tuple<geom2d::point, double, double>>
+std::optional<geom2d::IntersecctionSolutionType>
 geom2d::curveIntersector::execPointAndPlatoX(
   const double tminOfPoint,
   const double tmaxOfPoint,
@@ -639,7 +641,7 @@ geom2d::curveIntersector::execPointAndPlatoX(
 
 //-----------------------------------------------------------------------------
 
-std::optional<std::tuple<geom2d::point, double, double>>
+std::optional<geom2d::IntersecctionSolutionType>
   geom2d::curveIntersector::execPointAndPlatoY
   (
     const double tminOfPoint,
@@ -712,7 +714,7 @@ std::optional<std::tuple<geom2d::point, double, double>>
 
 //-----------------------------------------------------------------------------
 
-std::optional<std::tuple<geom2d::point, double, double>>
+std::optional<geom2d::IntersecctionSolutionType>
   geom2d::curveIntersector::execPointAndAny
   (
     const double tminOfPoint,
@@ -790,7 +792,7 @@ std::optional<std::tuple<geom2d::point, double, double>>
 
 //-----------------------------------------------------------------------------
 
-std::optional<std::tuple<geom2d::point, double, double>>
+std::optional<geom2d::IntersecctionSolutionType>
   geom2d::curveIntersector::execPlatoYAndPlatoY
   (
     const double tmin1,
@@ -944,7 +946,7 @@ std::optional<std::tuple<geom2d::point, double, double>>
   return std::nullopt;
 }
 
-std::optional<std::tuple<geom2d::point, double, double>>
+std::optional<geom2d::IntersecctionSolutionType>
   geom2d::curveIntersector::execPlatoXAndPlatoX
   (
     const double tmin1,
@@ -1096,6 +1098,437 @@ std::optional<std::tuple<geom2d::point, double, double>>
       return std::tuple{ 0.5 * (pointOn1OfUpper + pointOn2OfUpper), t1OfCommonYmax, t2OfCommonYmax };
     }
   }
+  return std::nullopt;
+}
+
+std::optional<geom2d::IntersecctionSolutionType>
+  geom2d::curveIntersector::execPlatoXAndPlatoY
+  (
+    const double tminOfPlatox,
+    const double tmaxOfPlatox,
+    const baseCurve& curvePlatoX,
+    const double tminOfPlatoy,
+    const double tmaxOfPlatoy,
+    const baseCurve& curvePlatoY)
+{
+  /////////
+  //     //
+  //  *  // Platox curve
+  //     //
+  /////////
+  // важные параметры кривой квази-параллельной оси OY (PlatoX)
+  const auto PofPlatox = curvePlatoX.getPoint(tminOfPlatox);
+  const auto QofPlatox = curvePlatoX.getPoint(tmaxOfPlatox);
+  // ***
+  const auto pointOfYmin = (PofPlatox.y < QofPlatox.y) ? PofPlatox : QofPlatox;
+  const auto tOfYmin = (PofPlatox.y < QofPlatox.y) ? tminOfPlatox : tmaxOfPlatox;
+  // ***
+  const auto pointOfYmax = (PofPlatox.y < QofPlatox.y) ? QofPlatox : PofPlatox;
+  const auto tOfYmax = (PofPlatox.y < QofPlatox.y) ? tmaxOfPlatox : tminOfPlatox;
+  // ***
+  const aabb pyAABB{ std::initializer_list{PofPlatox, QofPlatox} };
+  /////////
+  //     //
+  //  *  // Platoy curve
+  //     //
+  /////////
+  // важные параметры кривой квази-параллельной оси OX (PlatoY)
+  const auto PofPlatoy = curvePlatoY.getPoint(tminOfPlatoy);
+  const auto QofPlatoy = curvePlatoY.getPoint(tmaxOfPlatoy);
+  // ***
+  const auto pointOfXmin = (PofPlatoy.x < QofPlatoy.x) ? PofPlatoy : QofPlatoy;
+  const auto tOfXmin = (PofPlatoy.x < QofPlatoy.x) ? tminOfPlatoy : tmaxOfPlatoy;
+  // ***
+  const auto pointOfXmax = (PofPlatoy.x < QofPlatoy.x) ? QofPlatoy : PofPlatoy;
+  const auto tOfXmax = (PofPlatoy.x < QofPlatoy.x) ? tmaxOfPlatoy : tminOfPlatoy;
+  // ***
+  const aabb pxAABB{ std::initializer_list{PofPlatoy, QofPlatoy} };
+
+  // рассматриваем граничные точки кривой PlatoX
+  auto marginalIntersectorOfPointWithPlatoY =
+    [
+      &curvePlatoX,
+      &curvePlatoY,
+      pointOfXmin,
+      tOfXmin,
+      tminOfPlatoy,
+      pointOfXmax,
+      tOfXmax,
+      tmaxOfPlatoy
+    ]
+  (const double tVertexPlatoX) -> std::optional<geom2d::IntersecctionSolutionType>
+  {
+    const auto vertexOfPlatoX = curvePlatoX.getPoint(tVertexPlatoX);
+    if (vertexOfPlatoX.x <= pointOfXmin.x)
+    {
+      if (point::isSame(vertexOfPlatoX, pointOfXmin))
+      {
+        return std::tuple{ 0.5 * (vertexOfPlatoX + pointOfXmin), tVertexPlatoX , tOfXmin };
+      }
+      else
+      {
+        return std::nullopt;
+      }
+    }
+    else if (vertexOfPlatoX.x >= pointOfXmax.x)
+    {
+      if (point::isSame(vertexOfPlatoX, pointOfXmax))
+      {
+        return std::tuple{ 0.5 * (vertexOfPlatoX + pointOfXmax), tVertexPlatoX , tOfXmax };
+      }
+      else
+      {
+        return std::nullopt;
+      }
+    }
+    else
+    {
+      auto func = [&curvePlatoY, xo = vertexOfPlatoX.x](const double t) -> double
+      {
+        return curvePlatoY.getPoint(t).x - xo;
+      };
+      const auto tOnPlatoY = math::findUniqueFunctionRoot(tminOfPlatoy, tmaxOfPlatoy, func);
+      const auto pointOnPlatoY = curvePlatoY.getPoint(tOnPlatoY);
+      if (point::isSame(vertexOfPlatoX, pointOnPlatoY))
+      {
+        return std::tuple{ 0.5 * (vertexOfPlatoX + pointOnPlatoY), tVertexPlatoX, tOnPlatoY };
+      }
+      else
+      {
+        std::nullopt;
+      }
+    }
+  };
+  // Применяем анализатор граничных точек кривой PlatoX
+  const auto result1 = marginalIntersectorOfPointWithPlatoY(tminOfPlatox);
+  if (result1) return result1;
+
+  const auto result2 = marginalIntersectorOfPointWithPlatoY(tmaxOfPlatox);
+  if (result2) return result2;
+
+  // рассматриваем граничные точки кривой PlatoY
+  auto marginalIntersectorOfPointWithPlatoX =
+    [
+      &curvePlatoY,
+      &curvePlatoX,
+      pointOfYmin,
+      tOfYmin,
+      tminOfPlatox,
+      pointOfYmax,
+      tOfYmax,
+      tmaxOfPlatox
+    ]
+  (const double tVertexPlatoY) -> std::optional<geom2d::IntersecctionSolutionType>
+  {
+    const auto vertexOfPlatoY = curvePlatoY.getPoint(tVertexPlatoY);
+    if (vertexOfPlatoY.y <= pointOfYmin.y)
+    {
+      if (point::isSame(vertexOfPlatoY, pointOfYmin))
+      {
+        return std::tuple{ 0.5 * (vertexOfPlatoY + pointOfYmin) , tOfYmin, tVertexPlatoY };
+      }
+      else
+      {
+        return std::nullopt;
+      }
+    }
+    else if (vertexOfPlatoY.y >= pointOfYmax.y)
+    {
+      if (point::isSame(vertexOfPlatoY, pointOfYmax))
+      {
+        return std::tuple{ 0.5 * (vertexOfPlatoY + pointOfYmax), tOfYmax, tVertexPlatoY };
+    }
+      else
+      {
+        return std::nullopt;
+      }
+  }
+    else
+    {
+      auto func = [&curvePlatoX, yo = vertexOfPlatoY.y](const double t) -> double
+      {
+        return curvePlatoX.getPoint(t).y - yo;
+      };
+      const auto tOnPlatoX = math::findUniqueFunctionRoot(tminOfPlatox, tmaxOfPlatox, func);
+      const auto pointOnPlatoX = curvePlatoX.getPoint(tOnPlatoX);
+      if (point::isSame(vertexOfPlatoY, pointOnPlatoX))
+      {
+        return std::tuple{ 0.5 * (vertexOfPlatoY + pointOnPlatoX), tOnPlatoX, tVertexPlatoY };
+      }
+      else
+      {
+        std::nullopt;
+      }
+    }
+  };
+  // Применяем анализатор граничных точек кривой PlatoY
+  const auto result3 = marginalIntersectorOfPointWithPlatoX(tminOfPlatoy);
+  if (result3) return result3;
+
+  const auto result4 = marginalIntersectorOfPointWithPlatoY(tmaxOfPlatoy);
+  if (result4) return result4;
+
+  // далее проверяем полноценное пересечение
+  ```
+  
+#if 0
+  const bool doNotIntersected =
+    ((xAABB.xmin() - yAABB.xmax()) > math::tolerance::tolPoint)
+      or
+    ((yAABB.xmin() - xAABB.xmax()) > math::tolerance::tolPoint)
+      or
+    ((xAABB.ymin() - yAABB.ymax()) > math::tolerance::tolPoint)
+      or
+    ((yAABB.ymin() - xAABB.ymax()) > math::tolerance::tolPoint);
+
+  if (doNotIntersected)
+  {
+    return std::nullopt;
+  }
+
+  // положение кривой PlatoX по отношению к кривой PlatoY
+  XMutualPos mutPosByX {XMutualPos::inside};
+  if      (yAABB.xmax() <= xAABB.xmin()) mutPosByX = XMutualPos::right;
+  else if (yAABB.xmax() <= xAABB.xmax()) mutPosByX = XMutualPos::rightPartially;
+  else if (yAABB.xmin() <  xAABB.xmin()) mutPosByX = XMutualPos::inside;
+  else if (yAABB.xmin() <  xAABB.xmax()) mutPosByX = XMutualPos::leftPartially;
+  else if (xAABB.xmax() <= yAABB.xmin()) mutPosByX = XMutualPos::left;
+  else throw std::logic_error("impossible situ in intersection of PlatoX & PlatoY");
+
+  // положение кривой PlatoY по отношению к кривой PlatoX
+
+
+  if      ((yAABB.xmax() <= xAABB.xmin())) mutPosByX = XMutualPos::right;
+  // *********************************************************************************************************************
+  else if ((xAABB.xmin() <  yAABB.xmax())
+            and
+           (yAABB.xmax() <= xAABB.xmax())) mutPosByX = XMutualPos::rightPartially;
+  // *********************************************************************************************************************
+  else if ((yAABB.xmin() <  xAABB.xmin())
+            and
+           (xAABB.xmax() <  yAABB.xmax())) mutPosByX = XMutualPos::inside;
+  // *********************************************************************************************************************
+  else if ((yAABB.xmin() <  xAABB.xmax())
+            and
+           (xAABB.xmin() <= yAABB.xmin())) mutPosByX = XMutualPos::leftPartially;
+  // *********************************************************************************************************************
+  else if ((xAABB.xmax() <= yAABB.xmin())) mutPosByX = XMutualPos::left;
+  // *********************************************************************************************************************
+  else                                                   throw std::logic_error("impossible mutual position of PlatoX & PlatoY by x axis");
+
+  // положение кривой
+
+#endif
+  return std::nullopt;
+}
+
+//-------------------------------------------------------------------------------------------------
+
+std::optional<geom2d::IntersecctionSolutionType>
+  geom2d::curveIntersector::findUniqueIntersection
+  (
+    const double tmin1,
+    const double tmax1,
+    const baseCurve& curve1,
+    const double tmin2,
+    const double tmax2,
+    const baseCurve& curve2,
+    const double toleranceOfSolution
+  )
+{
+  // Tracing - is construction of StairWay
+  // begin -> ***********
+  //                    *
+  //                    *
+  //                    ******
+  //                         **
+  //                          ** ->end
+  Axis axisToStartTraceAlong = Axis::X;
+  unsigned short curveToLaunchTrace = 1;
+
+  const point p1 = curve1.getPoint(tmin1);
+  const point q1 = curve1.getPoint(tmax1);
+  
+  const point p2 = curve1.getPoint(tmin2);
+  const point q2 = curve1.getPoint(tmax2);
+
+  const aabb aabb1{ std::initializer_list{p1, q1} };
+  const aabb aabb2{ std::initializer_list{p2, q2} };
+
+  double tlow1 = tmin1;
+  point pp1 = p1;
+
+  double tup1 = tmax1;
+  point qq1 = q1;
+
+  double tlow2 = tmin2;
+  point pp2 = p2;
+
+  double tup2 = tmax2;
+  point qq2 = q2;
+
+  aabb commonAabb{ std::initializer_list{pp1, pp2, qq1, qq2} };
+
+  while
+    (
+      (commonAabb.lengthx() > toleranceOfSolution)
+        or
+      (commonAabb.lengthy() > toleranceOfSolution)
+    )
+  {
+    StatOfCurvePiece curveServ1{ tlow1, pp1, tup1, qq1 };
+    StatOfCurvePiece curveServ2{ tlow2, pp2, tup2, qq2 };
+    // краевой случай 1
+    if (curveServ1.pointOfxmin().x >= curveServ2.pointOfxmax().x)
+    {
+      if (point::isSame(curveServ1.pointOfxmin(), curveServ2.pointOfxmax()))
+      {
+        return
+          std::tuple
+          {
+            0.5 * (curveServ1.pointOfxmin() + curveServ2.pointOfxmax()),
+            curveServ1.tOfxmin(),
+            curveServ2.tOfxmax()
+          };
+      }
+      else
+      {
+        return std::nullopt;
+      }
+    }
+    // краевой случай 2
+    if (curveServ2.pointOfxmin().x >= curveServ1.pointOfxmax().x)
+    {
+      if (point::isSame(curveServ2.pointOfxmin(), curveServ1.pointOfxmax()))
+      {
+        return
+          std::tuple
+        {
+          0.5 * (curveServ2.pointOfxmin() + curveServ1.pointOfxmax()),
+          curveServ1.tOfxmax(),
+          curveServ2.tOfxmin()
+        };
+      }
+      else
+      {
+        return std::nullopt;
+      }
+    }
+    // краевой случай 3
+    if (curveServ1.pointOfymin().y >= curveServ2.pointOfymax().y)
+    {
+      if (point::isSame(curveServ1.pointOfymin(), curveServ2.pointOfymax()))
+      {
+        return
+          std::tuple
+        {
+          0.5 * (curveServ1.pointOfymin() + curveServ2.pointOfymax()),
+          curveServ1.tOfymin(),
+          curveServ2.tOfymax()
+        };
+      }
+      else
+      {
+        return std::nullopt;
+      }
+    }
+    // краевой случай 4
+    if (curveServ2.pointOfymin().y >= curveServ1.pointOfymax().y)
+    {
+      if (point::isSame(curveServ2.pointOfymin(), curveServ1.pointOfymax()))
+      {
+        return
+          std::tuple
+        {
+          0.5 * (curveServ2.pointOfymin() + curveServ1.pointOfymax()),
+          curveServ1.tOfymax(),
+          curveServ2.tOfymin()
+        };
+      }
+      else
+      {
+        return std::nullopt;
+      }
+    }
+    // пересечение интервалов по оси X точно есть
+    // минимум
+    double tofxmin1 = 0.0;
+    double tofxmin2 = 0.0;
+    double commonXmin = 0.0;
+    if (curveServ1.pointOfxmin().x < curveServ2.pointOfxmin().x)
+    {
+      commonXmin = curveServ2.pointOfxmin().x;
+      tofxmin2 = curveServ2.tOfxmin();
+      auto func = [&curve1, xo = commonXmin](const double t) -> double
+      {
+        return curve1.getPoint(t).x - xo;
+      };
+      tofxmin1 = math::findUniqueFunctionRoot(tlow1, tup1, func);
+    }
+    else if (curveServ1.pointOfxmin().x > curveServ2.pointOfxmin().x)
+    {
+      commonXmin = curveServ1.pointOfxmin().x;
+      tofxmin1 = curveServ1.tOfxmin();
+      auto func = [&curve2, xo = commonXmin](const double t) -> double
+      {
+        return curve2.getPoint(t).x - xo;
+      };
+      tofxmin2 = math::findUniqueFunctionRoot(tlow2, tup2, func);
+    }
+    else
+    {
+      commonXmin = curveServ1.pointOfxmin().x;
+      tofxmin1 = curveServ1.tOfxmin();
+      tofxmin2 = curveServ2.tOfxmin();
+    }
+    // максимум
+    double tofxmax1 = 0.0;`````
+    double tofxmax2 = 0.0;
+    double commonXmax = 0.0;
+    if (curveServ1.pointOfxmax().x < curveServ2.pointOfxmax().x)
+    {
+      commonXmax = curveServ1.pointOfxmax().x;
+      tofxmax1 = curveServ1.tOfxmax();
+      auto func = [&curve2, xo = commonXmax](const double t) -> double
+      {
+        return curve2.getPoint(t).x - xo;
+      };
+      tofxmax2 = math::findUniqueFunctionRoot(tlow2, tup2, func);
+    }
+    else if (curveServ1.pointOfxmin().x > curveServ2.pointOfxmin().x)
+    {
+      commonXmin = curveServ1.pointOfxmin().x;
+      tofxmin1 = curveServ1.tOfxmin();
+      auto func = [&curve2, xo = commonXmin](const double t) -> double
+      {
+        return curve2.getPoint(t).x - xo;
+      };
+      tofxmin2 = math::findUniqueFunctionRoot(tlow2, tup2, func);
+    }
+    else
+    {
+      commonXmin = curveServ1.pointOfxmin().x;
+      tofxmin1 = curveServ1.tOfxmin();
+      tofxmin2 = curveServ2.tOfxmin();
+    }
+  }
+
+  //double largestLength = 0.0;
+  //// update
+  //if (aabb1.lengthx() > largestLength)
+  //{
+  //  largestLength = aabb1.lengthx();
+  //  axisToStartTraceAlong = Axis::Y;
+  //  curveToLaunchTrace = 2;
+  //}
+  //// update
+  //if (aabb1.lengthy() > largestLength)
+  //{
+  //  largestLength = aabb1.lengthy();
+
+  //}
+
+
   return std::nullopt;
 }
 

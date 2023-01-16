@@ -2,6 +2,7 @@
 
 #include "baseCurve.h"
 #include "point.h"
+#include "IntersecctionSolutionType.h"
 
 #include <set>
 #include <vector>
@@ -56,7 +57,7 @@ namespace geom2d
 
     // Исследуем решение, если первая и вторая кривая - точки
     static
-      std::optional<std::tuple<geom2d::point, double, double>>
+      std::optional<geom2d::IntersecctionSolutionType>
         execPointAndPoint
         (
           const double tminOfPoint1,
@@ -96,7 +97,7 @@ namespace geom2d
     // Исследуем решение, если первая кривая - точка,
     // а вторая 'X = const'
     static
-      std::optional<std::tuple<geom2d::point, double, double>>
+      std::optional<geom2d::IntersecctionSolutionType>
         execPointAndPlatoX
         (
           const double tminOfPoint,
@@ -110,7 +111,7 @@ namespace geom2d
     // Исследуем решение, если первая кривая - точка,
     // а вторая 'Y = const'
     static
-      std::optional<std::tuple<geom2d::point, double, double>>
+      std::optional<geom2d::IntersecctionSolutionType>
         execPointAndPlatoY
         (
           const double tminOfPoint,
@@ -124,7 +125,7 @@ namespace geom2d
     // Исследуем решение, если первая кривая - точка,
     // а вторая не плато, т.е. изменчива как по X, так и по Y.
     static
-      std::optional<std::tuple<geom2d::point, double, double>>
+      std::optional<geom2d::IntersecctionSolutionType>
         execPointAndAny
         (
           const double tminOfPoint,
@@ -137,7 +138,7 @@ namespace geom2d
 
     // Исследуем решение, если первая и вторая кривая - PlatoY
     static
-      std::optional<std::tuple<geom2d::point, double, double>>
+      std::optional<geom2d::IntersecctionSolutionType>
         execPlatoYAndPlatoY
         (
           const double tmin1,
@@ -150,7 +151,7 @@ namespace geom2d
 
     // Исследуем решение, если первая и вторая кривая - PlatoX
     static
-      std::optional<std::tuple<geom2d::point, double, double>>
+      std::optional<geom2d::IntersecctionSolutionType>
       execPlatoXAndPlatoX
       (
         const double tmin1,
@@ -159,6 +160,34 @@ namespace geom2d
         const double tmin2,
         const double tmax2,
         const baseCurve& curvePlatoX2
+      );
+
+    // Исследуем решение, если первая кривая - PlatoX, вторая - PlatoY
+    static
+      std::optional<geom2d::IntersecctionSolutionType>
+      execPlatoXAndPlatoY
+      (
+        const double tminOfPlatox,
+        const double tmaxOfPlatox,
+        const baseCurve& curvePlatoX,
+        const double tminOfPlatoy,
+        const double tmaxOfPlatoy,
+        const baseCurve& curvePlatoY
+      );
+
+    // Находим точку пересечения методом ступеньки,
+    // когда известно, что пересечение точно одно
+    static
+      std::optional<geom2d::IntersecctionSolutionType>
+      findUniqueIntersection
+      (
+        const double tmin1,
+        const double tmax1,
+        const baseCurve& curve1,
+        const double tmin2,
+        const double tmax2,
+        const baseCurve& curve2,
+        const double toleranceOfSolution = math::tolerance::tolPoint * 0.1
       );
 
   private:

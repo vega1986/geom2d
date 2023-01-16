@@ -11,14 +11,30 @@ namespace math
   // предусловие этой функции: func(a) * func(b) < 0
   // ищем с точностью до tol
   template<class theFunc>
-  double findUniqueFunctionRoot(double a, double b, theFunc& func, const double tol = tolerance::tolNumeric)
+  double findUniqueFunctionRoot(double a, double b, theFunc& func, const double funcTolerance = tolerance::tolPoint * 0.1)
   {
-    while (b - a > tol)
+    while (true)
     {
-      const double c = 0.5 * (a + b);
       const double funcLeft = func(a);
-      const double funcMiddle = func(c);
       const double funcRight = func(b);
+      const double c = 0.5 * (a + b);
+      const double funcMiddle = func(c);
+      // если функция достаточно близка к 0, то считаем, что нашли решение
+      // левая граница интервала
+      if (std::abs(funcLeft) <= funcTolerance)
+      {
+        return a;
+      }
+      // правая граница интервала
+      if (std::abs(funcRight) <= funcTolerance)
+      {
+        return b;
+      }
+      // серединка
+      if (std::abs(funcMiddle) <= funcTolerance)
+      {
+        return c;
+      }
      
       if (funcMiddle > 0.0)
       {
