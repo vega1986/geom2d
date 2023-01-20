@@ -33,84 +33,84 @@ geom2d::StatOfCurvePiece::StatOfCurvePiece
 
 //*************************************************************************************************
 
-inline const double geom2d::StatOfCurvePiece::tmin() const
+const double geom2d::StatOfCurvePiece::tmin() const
 {
   return m_tmin;
 }
 
 //*************************************************************************************************
 
-inline const geom2d::point geom2d::StatOfCurvePiece::pointOftmin() const
+const geom2d::point geom2d::StatOfCurvePiece::pointOftmin() const
 {
   return m_pointOfTmin;
 }
 
 //*************************************************************************************************
 
-inline const double geom2d::StatOfCurvePiece::tmax() const
+const double geom2d::StatOfCurvePiece::tmax() const
 {
   return m_tmax;
 }
 
 //*************************************************************************************************
 
-inline const geom2d::point geom2d::StatOfCurvePiece::pointOftmax() const
+const geom2d::point geom2d::StatOfCurvePiece::pointOftmax() const
 {
   return m_pointOfTmax;
 }
 
 //*************************************************************************************************
 
-inline const double geom2d::StatOfCurvePiece::tOfxmin() const
+const double geom2d::StatOfCurvePiece::tOfxmin() const
 {
   return m_tOfPointOfMinX;
 }
 
 //*************************************************************************************************
 
-inline const geom2d::point geom2d::StatOfCurvePiece::pointOfxmin() const
+const geom2d::point geom2d::StatOfCurvePiece::pointOfxmin() const
 {
   return m_pointOfMinX;
 }
 
 //*************************************************************************************************
 
-inline const double geom2d::StatOfCurvePiece::tOfxmax() const
+const double geom2d::StatOfCurvePiece::tOfxmax() const
 {
   return m_tOfPointOfMaxX;
 }
 
 //*************************************************************************************************
 
-inline const geom2d::point geom2d::StatOfCurvePiece::pointOfxmax() const
+const geom2d::point geom2d::StatOfCurvePiece::pointOfxmax() const
 {
   return m_pointOfMaxX;
 }
 
 //*************************************************************************************************
 
-inline const double geom2d::StatOfCurvePiece::tOfymin() const
+const double geom2d::StatOfCurvePiece::tOfymin() const
 {
   return m_tOfPointOfMinY;
 }
 
 //*************************************************************************************************
 
-inline const geom2d::point geom2d::StatOfCurvePiece::pointOfymin() const
+const geom2d::point geom2d::StatOfCurvePiece::pointOfymin() const
 {
   return m_pointOfMinY;
 }
 
 //*************************************************************************************************
 
-inline const double geom2d::StatOfCurvePiece::tOfymax() const
+const double geom2d::StatOfCurvePiece::tOfymax() const
 {
   return m_tOfPointOfMaxY;
 }
 
 //*************************************************************************************************
 
-inline const geom2d::point geom2d::StatOfCurvePiece::pointOfymax() const
+const geom2d::point geom2d::StatOfCurvePiece::pointOfymax() const
 {
   return m_pointOfMaxY;
 }

@@ -132,6 +132,7 @@
     <ClCompile Include="AABB.cpp" />
     <ClCompile Include="baseCurve.cpp" />
     <ClCompile Include="bezierCurve2d.cpp" />
+    <ClCompile Include="CommonRangeHelper.cpp" />
     <ClCompile Include="curveIntersector.cpp" />
     <ClCompile Include="geom2d.cpp" />
     <ClCompile Include="math.cpp" />
@@ -147,6 +148,7 @@
     <ClInclude Include="baseCurve.h" />
     <ClInclude Include="bezierCurve2d.h" />
     <ClInclude Include="common.h" />
+    <ClInclude Include="CommonRangeHelper.h" />
     <ClInclude Include="curveIntersector.h" />
     <ClInclude Include="findFunctionRoots.h" />
     <ClInclude Include="IntersecctionSolutionType.h" />

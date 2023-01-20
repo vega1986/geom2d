@@ -5,8 +5,10 @@
 #include "math.h"
 #include "Axis.h"
 #include "StatOfCurvePiece.h"
+#include "CommonRangeHelper.h"
 
 #include <vector>
+#include <array>
 #include <algorithm>
 
 //-----------------------------------------------------------------------------
@@ -1269,7 +1271,7 @@ std::optional<geom2d::IntersecctionSolutionType>
   if (result4) return result4;
 
   // далее проверяем полноценное пересечение
-  ```
+  
   
 #if 0
   const bool doNotIntersected =
@@ -1325,211 +1327,626 @@ std::optional<geom2d::IntersecctionSolutionType>
 //-------------------------------------------------------------------------------------------------
 
 std::optional<geom2d::IntersecctionSolutionType>
-  geom2d::curveIntersector::findUniqueIntersection
+geom2d::curveIntersector::findUniqueIntersection
+(
+  const double tmin1,
+  const double tmax1,
+  const baseCurve& curve1,
+  const double tmin2,
+  const double tmax2,
+  const baseCurve& curve2
+)
+{
+  const auto p1 = curve1.getPoint(tmin1);
+  const auto q1 = curve1.getPoint(tmax1);
+  const aabb aabb1{ std::initializer_list{p1, q1} };
+
+  const auto p2 = curve2.getPoint(tmin2);
+  const auto q2 = curve2.getPoint(tmax2);
+  const aabb aabb2{ std::initializer_list{p2, q2} };
+
+
+  //const double tmin[] = { tmin1, tmin2 };
+  //const double tmax[] = { tmax1, tmax2 };
+  //const baseCurve* curves[] = { &curve1 , &curve2 };
+
+  //const point p[2] =
+  //{
+  //  curves[0]->getPoint(tmin[0]),
+  //  curves[1]->getPoint(tmin[1])
+  //};
+  //const point q[2] =
+  //{
+  //  curves[0]->getPoint(tmax[0]),
+  //  curves[1]->getPoint(tmax[1])
+  //};
+
+  //const aabb aabb[2] =
+  //{
+  //  {std::initializer_list{p[0], q[0]}},
+  //  {std::initializer_list{p[1], q[1]}}
+  //};
+  using StatCurveType = std::tuple<int, Axis, double>;
+  StatCurveType curve1AlongX{ int{1}, Axis::X, aabb1.lengthx() };
+  StatCurveType curve1AlongY{ int{1}, Axis::Y, aabb1.lengthy() };
+  StatCurveType curve2AlongX{ int{2}, Axis::X, aabb2.lengthx() };
+  StatCurveType curve2AlongY{ int{2}, Axis::Y, aabb2.lengthy() };
+  auto statCurveLess = [](const StatCurveType& sc1, const StatCurveType& sc2)
+  {
+    const auto [i1, axis1, len1] = sc1;
+    const auto [i2, axis2, len2] = sc2;
+    return len1 < len2;
+  };
+  const auto [maxCurveId, maxAxis, maxLength] = 
+    std::max(std::initializer_list{ curve1AlongX , curve1AlongY , curve2AlongX , curve2AlongY }, statCurveLess);
+  if (maxCurveId == 1)
+  {
+    if (maxAxis == Axis::X)
+    {
+      return findUniqueIntersectionRefAlongX(tmin1, tmax1, curve1, tmin2, tmax2, curve2);
+    }
+    else
+    {
+      return findUniqueIntersectionRefAlongY(tmin1, tmax1, curve1, tmin2, tmax2, curve2);
+    }
+  }
+  else
+  {
+    const auto result = (maxAxis == Axis::X) ?
+      findUniqueIntersectionRefAlongX(tmin2, tmax2, curve2, tmin1, tmax1, curve1)
+      :
+      findUniqueIntersectionRefAlongX(tmin2, tmax2, curve2, tmin1, tmax1, curve1);
+    if (result)
+    {
+      const auto [dist, t2, t1] = result.value();
+      return std::tuple{ dist, t1, t2 };
+    }
+    else
+    {
+      return std::nullopt;
+    }
+  }
+
+#if 0
+
+
+  int theReferenceCurve = 1; // кривая с наибольшим размеров вдоль одной из координатных осей
+  double largestLength = 0.0;
+  Axis theLargestAxis = Axis::X;
+  if (aabb1.lengthx() > largestLength)
+  {
+    theReferenceCurve = 1;
+    largestLength = aabb[0].lengthx();
+    theLargestAxis = Axis::X;
+  }
+  if (aabb[0].lengthy() > largestLength)
+  {
+    theLargestCurve = 0;
+    largestLength = aabb[0].lengthy();
+    theLargestAxis = Axis::Y;
+  }
+  if (aabb[1].lengthx() > largestLength)
+  {
+    theLargestCurve = 1;
+    largestLength = aabb[1].lengthx();
+    theLargestAxis = Axis::X;
+  }
+  if (aabb[1].lengthy() > largestLength)
+  {
+    theLargestCurve = 1;
+    largestLength = aabb[1].lengthy();
+    theLargestAxis = Axis::Y;
+  }
+  const baseCurve& referenceCurve = *(curves[theLargestCurve]);
+  
+  const double trefmin = tmin[theLargestCurve];
+  const point pref = referenceCurve.getPoint(trefmin);
+
+  const double trefmax = tmax[theLargestCurve];
+  const point qref = referenceCurve.getPoint(trefmax);
+  
+  StatOfCurvePiece scpRef{ trefmin , pref , trefmax , qref };
+
+  const baseCurve& otherCurve = *(curves[1 - theLargestCurve]);
+
+  const double tothmin = tmin[theLargestCurve];
+  const point poth = otherCurve.getPoint(tothmin);
+  
+  const double tothmax = tmax[theLargestCurve];
+  const point qoth = otherCurve.getPoint(tothmax);
+  StatOfCurvePiece scpOth{ tothmin , poth , tothmax , qoth };
+
+  if (theLargestAxis == Axis::X) return findUniqueIntersectionRefAlongX(trefmin, trefmax, referenceCurve, tothmin, tothmax, otherCurve);
+  else                           return findUniqueIntersectionRefAlongX(trefmin, trefmax, referenceCurve, tothmin, tothmax, otherCurve);
+
+#endif
+#if 0
+  if (theLargestAxis == Axis::X)
+  {
+    if (scpOth.pointOfxmax().x <= scpRef.pointOfxmin().x)
+    {
+      if (point::isSame(scpOth.pointOfxmax(), scpRef.pointOfxmin()))
+      {
+        if (theLargestCurve == 0)
+        {
+          return IntersecctionSolutionType{ 0.5 * (scpOth.pointOfxmax() + scpRef.pointOfxmin()), scpRef.tOfxmin(), scpOth.tOfxmax() };
+        }
+        else
+        {
+          return IntersecctionSolutionType{ 0.5 * (scpOth.pointOfxmax() + scpRef.pointOfxmin()), scpOth.tOfxmax(), scpRef.tOfxmin() };
+        }
+      }
+      else
+      {
+        return std::nullopt;
+      }
+    }
+    else if (scpOth.pointOfxmin().x >= scpRef.pointOfxmax().x)
+    {
+      if (point::isSame(scpOth.pointOfxmin(), scpRef.pointOfxmax()))
+      {
+        if (theLargestCurve == 0)
+        {
+          return IntersecctionSolutionType{ 0.5 * (scpOth.pointOfxmin() + scpRef.pointOfxmax()), scpRef.tOfxmax(), scpOth.tOfxmin() };
+        }
+        else
+        {
+          return IntersecctionSolutionType{ 0.5 * (scpOth.pointOfxmin() + scpRef.pointOfxmax()), scpOth.tOfxmin(), scpRef.tOfxmax() };
+        }
+      }
+      else
+      {
+        return std::nullopt;
+      }
+    }
+    else
+    {
+      // MIN X
+      double commonXmin = 0.0;
+      double trefOfCommonXmin = 0.0;
+      point pointRefOfCommonXmin;
+      double tothOfCommonXmin = 0.0;
+      point pointOthOfCommonXmin;
+      if (scpRef.pointOfxmin().x > scpOth.pointOfxmin().x)
+      {
+        commonXmin = scpRef.pointOfxmin().x;
+        trefOfCommonXmin = scpRef.tOfxmin();
+        auto func = [&otherCurve, xo = commonXmin](const double t) -> double
+        {
+          return otherCurve.getPoint(t).x - xo;
+        };
+        tothOfCommonXmin = math::findUniqueFunctionRoot(tothmin, tothmax, func);
+        pointOthOfCommonXmin = otherCurve.getPoint(tothOfCommonXmin);
+      }
+      else if (scpRef.pointOfxmin().x < scpOth.pointOfxmin().x)
+      {
+        commonXmin = scpOth.pointOfxmin().x;
+        tothOfCommonXmin = scpOth.tOfxmin();
+        auto func = [&referenceCurve, xo = commonXmin](const double t) -> double
+        {
+          return referenceCurve.getPoint(t).x - xo;
+        };
+        trefOfCommonXmin = math::findUniqueFunctionRoot(trefmin, trefmax, func);
+        pointRefOfCommonXmin = referenceCurve.getPoint(trefOfCommonXmin);
+      }
+      else
+      {
+        commonXmin = scpRef.pointOfxmin().x;
+        trefOfCommonXmin = scpRef.tOfxmin();
+        pointRefOfCommonXmin = scpRef.pointOfxmin();
+        tothOfCommonXmin = scpOth.tOfxmin();
+        pointOthOfCommonXmin = scpOth.pointOfxmin();
+      }
+      // MAX X
+      double commonXmax = 0.0;
+      double trefOfCommonXmax = 0.0;
+      point pointRefOfCommonXmax;
+      double tothOfCommonXmax = 0.0;
+      point pointOthOfCommonXmax;
+      if (scpRef.pointOfxmax().x < scpOth.pointOfxmax().x)
+      {
+        commonXmax = scpRef.pointOfxmax().x;
+        trefOfCommonXmax = scpRef.tOfxmax();
+        auto func = [&otherCurve, xo = commonXmax](const double t) -> double
+        {
+          return otherCurve.getPoint(t).x - xo;
+        };
+        tothOfCommonXmax = math::findUniqueFunctionRoot(tothmin, tothmax, func);
+        pointOthOfCommonXmax = otherCurve.getPoint(tothOfCommonXmax);
+      }
+      else if (scpRef.pointOfxmax().x > scpOth.pointOfxmax().x)
+      {
+        commonXmax = scpOth.pointOfxmax().x;
+        tothOfCommonXmax = scpOth.tOfxmax();
+        auto func = [&referenceCurve, xo = commonXmax](const double t) -> double
+        {
+          return referenceCurve.getPoint(t).x - xo;
+        };
+        trefOfCommonXmax = math::findUniqueFunctionRoot(trefmin, trefmax, func);
+        pointRefOfCommonXmax = referenceCurve.getPoint(trefOfCommonXmax);
+      }
+      else
+      {
+        commonXmax = scpRef.pointOfxmax().x;
+        trefOfCommonXmax = scpRef.tOfxmax();
+        pointRefOfCommonXmax = scpRef.pointOfxmax();
+        tothOfCommonXmax = scpOth.tOfxmax();
+        pointOthOfCommonXmax = scpOth.pointOfxmax();
+      }
+      // проверяем концы ОДЗ по X
+      //  (*) проверяем левый конец        
+      if (point::isSame(pointOthOfCommonXmin, pointRefOfCommonXmin))
+      {
+        if (theLargestCurve == 0)
+        {
+          return IntersecctionSolutionType{ 0.5 * (pointOthOfCommonXmin + pointRefOfCommonXmin), trefOfCommonXmin, tothOfCommonXmin };
+        }
+        else
+        {
+          return IntersecctionSolutionType{ 0.5 * (pointOthOfCommonXmin + pointRefOfCommonXmin), tothOfCommonXmin, trefOfCommonXmin };
+        }
+      }
+      //  (*) проверяем правый конец
+      if (point::isSame(pointOthOfCommonXmax, pointRefOfCommonXmax))
+      {
+        if (theLargestCurve == 0)
+        {
+          return IntersecctionSolutionType{ 0.5 * (pointOthOfCommonXmax + pointRefOfCommonXmax), trefOfCommonXmax, tothOfCommonXmax };
+        }
+        else
+        {
+          return IntersecctionSolutionType{ 0.5 * (pointOthOfCommonXmax + pointRefOfCommonXmax), tothOfCommonXmax, trefOfCommonXmax };
+        }
+      }
+      // лежит ли одна кривая полностью выше или ниже другой
+      double fleft  = pointOthOfCommonXmin.y - pointRefOfCommonXmin.y;
+      double fright = pointOthOfCommonXmax.y - pointRefOfCommonXmax.y;
+      const bool othIsAboveRef = (fleft > 0.0) and (fright > 0.0);
+      const bool refIsUnderRef = (fleft < 0.0) and (fright < 0.0);
+      if (othIsAboveRef or refIsUnderRef)
+      {
+        return std::nullopt;
+      }
+      while (true)
+      {
+        double tothMiddle = 0.5 * (tothOfCommonXmin + tothOfCommonXmax);
+        point pointOthOnMiddle = otherCurve.getPoint(tothMiddle);
+        
+        double trefMiddle = 0.0;
+        point pointRefOnMiddle;
+        if (pointOthOnMiddle.x <= pointRefOfCommonXmin.x)
+        {
+          trefMiddle = trefOfCommonXmin;
+          pointRefOnMiddle = pointRefOfCommonXmin;
+        }
+        else if (pointOthOnMiddle.x >= pointRefOfCommonXmax.x)
+        {
+          trefMiddle = trefOfCommonXmax;
+          pointRefOnMiddle = pointRefOfCommonXmax;
+        }
+        else
+        {
+          auto func = [&referenceCurve, xo = pointOthOnMiddle.x](const double t) -> double
+          {
+            return referenceCurve.getPoint(t).x - xo;
+          };
+          const double trefMinCurrent = std::min(trefOfCommonXmin, trefOfCommonXmax);
+          const double trefMaxCurrent = std::max(trefOfCommonXmin, trefOfCommonXmax);
+          trefMiddle = math::findUniqueFunctionRoot(trefMinCurrent, trefMaxCurrent, func);
+          pointRefOnMiddle = referenceCurve.getPoint(trefMiddle);
+        }
+        // проверяем середину
+        if (point::isSame(pointOthOnMiddle, pointRefOnMiddle))
+        {
+          if (theLargestCurve == 0)
+          {
+            return IntersecctionSolutionType{ 0.5 * (pointOthOnMiddle + pointRefOnMiddle), trefMiddle, tothMiddle};
+          }
+          else
+          {
+            return IntersecctionSolutionType{ 0.5 * (pointOthOnMiddle + pointRefOnMiddle), tothMiddle, trefMiddle };
+          }
+        }
+        // середина не является решением, тогда решение либо слева, либо справа
+        fleft = pointOthOfCommonXmin.y - pointRefOfCommonXmin.y;
+        fright = pointOthOfCommonXmax.y - pointRefOfCommonXmax.y;
+        const double fmiddle = pointOthOnMiddle.y - pointRefOnMiddle.y;
+        if (((fleft > 0.0) and (fmiddle < 0.0)) or ((fleft < 0.0) and (fmiddle > 0.0)))
+        {
+          // середина становится правым концом, так как пересечение находится слева
+          pointOthOfCommonXmax = pointOthOnMiddle;
+          tothOfCommonXmax     = tothMiddle;
+          pointRefOfCommonXmax = pointRefOnMiddle;
+          trefOfCommonXmax     = trefMiddle;
+        }
+        else if (((fright > 0.0) and (fmiddle < 0.0)) or ((fright < 0.0) and (fmiddle > 0.0)))
+        {
+          // середина становится левым концом, так как пересечение находится справа
+          pointOthOfCommonXmin = pointOthOnMiddle;
+          tothOfCommonXmin     = tothMiddle;
+          pointRefOfCommonXmin = pointRefOnMiddle;
+          trefOfCommonXmin     = trefMiddle;
+        }
+        else
+        {
+          throw std::logic_error("impossible situation");
+        }
+      }
+    }
+  }
+  else
+  {
+
+  }
+#endif
+  return std::nullopt;
+}
+
+std::optional<geom2d::IntersecctionSolutionType>
+  geom2d::curveIntersector::findUniqueIntersectionRefAlongX
+  (
+    const double trefmin,
+    const double trefmax,
+    const baseCurve& referenceCurve,
+    const double tothmin,
+    const double tothmax,
+    const baseCurve& otherCurve
+  )
+{
+  const auto Pref = referenceCurve.getPoint(trefmin);
+  const auto Qref = referenceCurve.getPoint(trefmax);
+  StatOfCurvePiece scpRef{ trefmin, Pref, trefmax, Qref };
+
+  const auto Poth = otherCurve.getPoint(trefmin);
+  const auto Qoth = otherCurve.getPoint(trefmax);
+  StatOfCurvePiece scpOth{ tothmin, Poth, tothmax, Qoth };
+
+  if (scpOth.pointOfxmax().x <= scpRef.pointOfxmin().x)
+  {
+    if (point::isSame(scpOth.pointOfxmax(), scpRef.pointOfxmin()))
+    {
+      return IntersecctionSolutionType{ 0.5 * (scpOth.pointOfxmax() + scpRef.pointOfxmin()), scpRef.tOfxmin(), scpOth.tOfxmax() };
+    }
+    else
+    {
+      return std::nullopt;
+    }
+  }
+  else if (scpOth.pointOfxmin().x >= scpRef.pointOfxmax().x)
+  {
+    if (point::isSame(scpOth.pointOfxmin(), scpRef.pointOfxmax()))
+    {
+      return IntersecctionSolutionType{ 0.5 * (scpOth.pointOfxmin() + scpRef.pointOfxmax()), scpRef.tOfxmax(), scpOth.tOfxmin() };
+    }
+    else
+    {
+      return std::nullopt;
+    }
+  }
+  else
+  {
+    // MIN X
+    const DataGetterOfX referenceGetter{ trefmin, trefmax, referenceCurve };
+    const DataGetterOfX otherGetter{ tothmin, tothmax, otherCurve };
+    point pointRefOfCommonXmin;
+    auto [commonXmin, trefOfCommonXmin, pointRefOfCommonXmin, tothOfCommonXmin, pointOthOfCommonXmin] =
+      CommonRangeHelper::ofLowest(referenceGetter, otherGetter);
+
+    double commonXmin = 0.0;
+    double trefOfCommonXmin = 0.0;
+    point pointRefOfCommonXmin;
+    double tothOfCommonXmin = 0.0;
+    point pointOthOfCommonXmin;
+    if (scpRef.pointOfxmin().x > scpOth.pointOfxmin().x)
+    {
+      commonXmin = scpRef.pointOfxmin().x;
+      trefOfCommonXmin = scpRef.tOfxmin();
+      auto func = [&otherCurve, xo = commonXmin](const double t) -> double
+      {
+        return otherCurve.getPoint(t).x - xo;
+      };
+      tothOfCommonXmin = math::findUniqueFunctionRoot(tothmin, tothmax, func);
+      pointOthOfCommonXmin = otherCurve.getPoint(tothOfCommonXmin);
+    }
+    else if (scpRef.pointOfxmin().x < scpOth.pointOfxmin().x)
+    {
+      commonXmin = scpOth.pointOfxmin().x;
+      tothOfCommonXmin = scpOth.tOfxmin();
+      auto func = [&referenceCurve, xo = commonXmin](const double t) -> double
+      {
+        return referenceCurve.getPoint(t).x - xo;
+      };
+      trefOfCommonXmin = math::findUniqueFunctionRoot(trefmin, trefmax, func);
+      pointRefOfCommonXmin = referenceCurve.getPoint(trefOfCommonXmin);
+    }
+    else
+    {
+      commonXmin = scpRef.pointOfxmin().x;
+      trefOfCommonXmin = scpRef.tOfxmin();
+      pointRefOfCommonXmin = scpRef.pointOfxmin();
+      tothOfCommonXmin = scpOth.tOfxmin();
+      pointOthOfCommonXmin = scpOth.pointOfxmin();
+    }
+    // MAX X
+    double commonXmax = 0.0;
+    double trefOfCommonXmax = 0.0;
+    point pointRefOfCommonXmax;
+    double tothOfCommonXmax = 0.0;
+    point pointOthOfCommonXmax;
+    if (scpRef.pointOfxmax().x < scpOth.pointOfxmax().x)
+    {
+      commonXmax = scpRef.pointOfxmax().x;
+      trefOfCommonXmax = scpRef.tOfxmax();
+      auto func = [&otherCurve, xo = commonXmax](const double t) -> double
+      {
+        return otherCurve.getPoint(t).x - xo;
+      };
+      tothOfCommonXmax = math::findUniqueFunctionRoot(tothmin, tothmax, func);
+      pointOthOfCommonXmax = otherCurve.getPoint(tothOfCommonXmax);
+    }
+    else if (scpRef.pointOfxmax().x > scpOth.pointOfxmax().x)
+    {
+      commonXmax = scpOth.pointOfxmax().x;
+      tothOfCommonXmax = scpOth.tOfxmax();
+      auto func = [&referenceCurve, xo = commonXmax](const double t) -> double
+      {
+        return referenceCurve.getPoint(t).x - xo;
+      };
+      trefOfCommonXmax = math::findUniqueFunctionRoot(trefmin, trefmax, func);
+      pointRefOfCommonXmax = referenceCurve.getPoint(trefOfCommonXmax);
+    }
+    else
+    {
+      commonXmax = scpRef.pointOfxmax().x;
+      trefOfCommonXmax = scpRef.tOfxmax();
+      pointRefOfCommonXmax = scpRef.pointOfxmax();
+      tothOfCommonXmax = scpOth.tOfxmax();
+      pointOthOfCommonXmax = scpOth.pointOfxmax();
+    }
+    // проверяем концы ОДЗ по X
+    //  (*) проверяем левый конец        
+    if (point::isSame(pointOthOfCommonXmin, pointRefOfCommonXmin))
+    {
+      return IntersecctionSolutionType{ 0.5 * (pointOthOfCommonXmin + pointRefOfCommonXmin), trefOfCommonXmin, tothOfCommonXmin };
+    }
+    //  (*) проверяем правый конец
+    if (point::isSame(pointOthOfCommonXmax, pointRefOfCommonXmax))
+    {
+      return IntersecctionSolutionType{ 0.5 * (pointOthOfCommonXmax + pointRefOfCommonXmax), trefOfCommonXmax, tothOfCommonXmax };
+    }
+    // лежит ли одна кривая полностью выше или ниже другой
+    double fleft = pointOthOfCommonXmin.y - pointRefOfCommonXmin.y;
+    double fright = pointOthOfCommonXmax.y - pointRefOfCommonXmax.y;
+    const bool othIsAboveRef = (fleft > 0.0) and (fright > 0.0);
+    const bool refIsUnderRef = (fleft < 0.0) and (fright < 0.0);
+    if (othIsAboveRef or refIsUnderRef)
+    {
+      return std::nullopt;
+    }
+    while (true)
+    {
+      double tothMiddle = 0.5 * (tothOfCommonXmin + tothOfCommonXmax);
+      point pointOthOnMiddle = otherCurve.getPoint(tothMiddle);
+
+      double trefMiddle = 0.0;
+      point pointRefOnMiddle;
+      if (pointOthOnMiddle.x <= pointRefOfCommonXmin.x)
+      {
+        trefMiddle = trefOfCommonXmin;
+        pointRefOnMiddle = pointRefOfCommonXmin;
+      }
+      else if (pointOthOnMiddle.x >= pointRefOfCommonXmax.x)
+      {
+        trefMiddle = trefOfCommonXmax;
+        pointRefOnMiddle = pointRefOfCommonXmax;
+      }
+      else
+      {
+        auto func = [&referenceCurve, xo = pointOthOnMiddle.x](const double t) -> double
+        {
+          return referenceCurve.getPoint(t).x - xo;
+        };
+        const double trefMinCurrent = std::min(trefOfCommonXmin, trefOfCommonXmax);
+        const double trefMaxCurrent = std::max(trefOfCommonXmin, trefOfCommonXmax);
+        trefMiddle = math::findUniqueFunctionRoot(trefMinCurrent, trefMaxCurrent, func);
+        pointRefOnMiddle = referenceCurve.getPoint(trefMiddle);
+      }
+      // проверяем середину
+      if (point::isSame(pointOthOnMiddle, pointRefOnMiddle))
+      {
+        return IntersecctionSolutionType{ 0.5 * (pointOthOnMiddle + pointRefOnMiddle), trefMiddle, tothMiddle };
+      }
+      // середина не является решением, тогда решение либо слева, либо справа
+      fleft = pointOthOfCommonXmin.y - pointRefOfCommonXmin.y;
+      fright = pointOthOfCommonXmax.y - pointRefOfCommonXmax.y;
+      const double fmiddle = pointOthOnMiddle.y - pointRefOnMiddle.y;
+      if (((fleft > 0.0) and (fmiddle < 0.0)) or ((fleft < 0.0) and (fmiddle > 0.0)))
+      {
+        // середина становится правым концом, так как пересечение находится слева
+        pointOthOfCommonXmax = pointOthOnMiddle;
+        tothOfCommonXmax = tothMiddle;
+        pointRefOfCommonXmax = pointRefOnMiddle;
+        trefOfCommonXmax = trefMiddle;
+      }
+      else if (((fright > 0.0) and (fmiddle < 0.0)) or ((fright < 0.0) and (fmiddle > 0.0)))
+      {
+        // середина становится левым концом, так как пересечение находится справа
+        pointOthOfCommonXmin = pointOthOnMiddle;
+        tothOfCommonXmin = tothMiddle;
+        pointRefOfCommonXmin = pointRefOnMiddle;
+        trefOfCommonXmin = trefMiddle;
+      }
+      else
+      {
+        throw std::logic_error("impossible situation in functin findUniqueIntersectionRefAlongX");
+      }
+    }
+  }
+  return std::nullopt;
+}
+
+std::optional<geom2d::IntersecctionSolutionType>
+  geom2d::curveIntersector::findUniqueIntersectionRefAlongY
+  (
+    const double trefmin,
+    const double trefmax,
+    const baseCurve& referenceCurve,
+    const double tothmin,
+    const double tothmax,
+    const baseCurve& otherCurve
+  )
+{
+
+}
+
+std::tuple<double, double, double>
+  geom2d::curveIntersector::findLargestCommonXmin
   (
     const double tmin1,
     const double tmax1,
     const baseCurve& curve1,
     const double tmin2,
     const double tmax2,
-    const baseCurve& curve2,
-    const double toleranceOfSolution
+    const baseCurve& curve2
   )
 {
-  // Tracing - is construction of StairWay
-  // begin -> ***********
-  //                    *
-  //                    *
-  //                    ******
-  //                         **
-  //                          ** ->end
-  Axis axisToStartTraceAlong = Axis::X;
-  unsigned short curveToLaunchTrace = 1;
-
   const point p1 = curve1.getPoint(tmin1);
   const point q1 = curve1.getPoint(tmax1);
-  
-  const point p2 = curve1.getPoint(tmin2);
-  const point q2 = curve1.getPoint(tmax2);
+  StatOfCurvePiece scp1{ tmin1, p1, tmax1, q1 };
 
-  const aabb aabb1{ std::initializer_list{p1, q1} };
-  const aabb aabb2{ std::initializer_list{p2, q2} };
+  const point p2 = curve2.getPoint(tmin1);
+  const point q2 = curve2.getPoint(tmax1);
+  StatOfCurvePiece scp2{tmin2, p2, tmax2, q2};
 
-  double tlow1 = tmin1;
-  point pp1 = p1;
-
-  double tup1 = tmax1;
-  point qq1 = q1;
-
-  double tlow2 = tmin2;
-  point pp2 = p2;
-
-  double tup2 = tmax2;
-  point qq2 = q2;
-
-  aabb commonAabb{ std::initializer_list{pp1, pp2, qq1, qq2} };
-
-  while
-    (
-      (commonAabb.lengthx() > toleranceOfSolution)
-        or
-      (commonAabb.lengthy() > toleranceOfSolution)
-    )
+  if (scp1.pointOfxmin().x > scp2.pointOfxmin().x)
   {
-    StatOfCurvePiece curveServ1{ tlow1, pp1, tup1, qq1 };
-    StatOfCurvePiece curveServ2{ tlow2, pp2, tup2, qq2 };
-    // краевой случай 1
-    if (curveServ1.pointOfxmin().x >= curveServ2.pointOfxmax().x)
+    const double commonXmin = scp1.pointOfxmin().x;
+    const double tleft1 = scp1.tOfxmin();
+    auto func = [&curve2, xo = commonXmin](const double t) -> double
     {
-      if (point::isSame(curveServ1.pointOfxmin(), curveServ2.pointOfxmax()))
-      {
-        return
-          std::tuple
-          {
-            0.5 * (curveServ1.pointOfxmin() + curveServ2.pointOfxmax()),
-            curveServ1.tOfxmin(),
-            curveServ2.tOfxmax()
-          };
-      }
-      else
-      {
-        return std::nullopt;
-      }
-    }
-    // краевой случай 2
-    if (curveServ2.pointOfxmin().x >= curveServ1.pointOfxmax().x)
-    {
-      if (point::isSame(curveServ2.pointOfxmin(), curveServ1.pointOfxmax()))
-      {
-        return
-          std::tuple
-        {
-          0.5 * (curveServ2.pointOfxmin() + curveServ1.pointOfxmax()),
-          curveServ1.tOfxmax(),
-          curveServ2.tOfxmin()
-        };
-      }
-      else
-      {
-        return std::nullopt;
-      }
-    }
-    // краевой случай 3
-    if (curveServ1.pointOfymin().y >= curveServ2.pointOfymax().y)
-    {
-      if (point::isSame(curveServ1.pointOfymin(), curveServ2.pointOfymax()))
-      {
-        return
-          std::tuple
-        {
-          0.5 * (curveServ1.pointOfymin() + curveServ2.pointOfymax()),
-          curveServ1.tOfymin(),
-          curveServ2.tOfymax()
-        };
-      }
-      else
-      {
-        return std::nullopt;
-      }
-    }
-    // краевой случай 4
-    if (curveServ2.pointOfymin().y >= curveServ1.pointOfymax().y)
-    {
-      if (point::isSame(curveServ2.pointOfymin(), curveServ1.pointOfymax()))
-      {
-        return
-          std::tuple
-        {
-          0.5 * (curveServ2.pointOfymin() + curveServ1.pointOfymax()),
-          curveServ1.tOfymax(),
-          curveServ2.tOfymin()
-        };
-      }
-      else
-      {
-        return std::nullopt;
-      }
-    }
-    // пересечение интервалов по оси X точно есть
-    // минимум
-    double tofxmin1 = 0.0;
-    double tofxmin2 = 0.0;
-    double commonXmin = 0.0;
-    if (curveServ1.pointOfxmin().x < curveServ2.pointOfxmin().x)
-    {
-      commonXmin = curveServ2.pointOfxmin().x;
-      tofxmin2 = curveServ2.tOfxmin();
-      auto func = [&curve1, xo = commonXmin](const double t) -> double
-      {
-        return curve1.getPoint(t).x - xo;
-      };
-      tofxmin1 = math::findUniqueFunctionRoot(tlow1, tup1, func);
-    }
-    else if (curveServ1.pointOfxmin().x > curveServ2.pointOfxmin().x)
-    {
-      commonXmin = curveServ1.pointOfxmin().x;
-      tofxmin1 = curveServ1.tOfxmin();
-      auto func = [&curve2, xo = commonXmin](const double t) -> double
-      {
-        return curve2.getPoint(t).x - xo;
-      };
-      tofxmin2 = math::findUniqueFunctionRoot(tlow2, tup2, func);
-    }
-    else
-    {
-      commonXmin = curveServ1.pointOfxmin().x;
-      tofxmin1 = curveServ1.tOfxmin();
-      tofxmin2 = curveServ2.tOfxmin();
-    }
-    // максимум
-    double tofxmax1 = 0.0;`````
-    double tofxmax2 = 0.0;
-    double commonXmax = 0.0;
-    if (curveServ1.pointOfxmax().x < curveServ2.pointOfxmax().x)
-    {
-      commonXmax = curveServ1.pointOfxmax().x;
-      tofxmax1 = curveServ1.tOfxmax();
-      auto func = [&curve2, xo = commonXmax](const double t) -> double
-      {
-        return curve2.getPoint(t).x - xo;
-      };
-      tofxmax2 = math::findUniqueFunctionRoot(tlow2, tup2, func);
-    }
-    else if (curveServ1.pointOfxmin().x > curveServ2.pointOfxmin().x)
-    {
-      commonXmin = curveServ1.pointOfxmin().x;
-      tofxmin1 = curveServ1.tOfxmin();
-      auto func = [&curve2, xo = commonXmin](const double t) -> double
-      {
-        return curve2.getPoint(t).x - xo;
-      };
-      tofxmin2 = math::findUniqueFunctionRoot(tlow2, tup2, func);
-    }
-    else
-    {
-      commonXmin = curveServ1.pointOfxmin().x;
-      tofxmin1 = curveServ1.tOfxmin();
-      tofxmin2 = curveServ2.tOfxmin();
-    }
+      return curve2.getPoint(t).x - xo;
+    };
+    const double tleft2 = math::findUniqueFunctionRoot(tmin2, tmax2, func);
+    return std::tuple{ commonXmin, tleft1, tleft2 };
   }
-
-  //double largestLength = 0.0;
-  //// update
-  //if (aabb1.lengthx() > largestLength)
-  //{
-  //  largestLength = aabb1.lengthx();
-  //  axisToStartTraceAlong = Axis::Y;
-  //  curveToLaunchTrace = 2;
-  //}
-  //// update
-  //if (aabb1.lengthy() > largestLength)
-  //{
-  //  largestLength = aabb1.lengthy();
-
-  //}
-
-
-  return std::nullopt;
+  else if (scp1.pointOfxmin().x < scp2.pointOfxmin().x)
+  {
+    const double commonXmin = scp2.pointOfxmin().x;
+    const double tleft2 = scp2.tOfxmin();
+    auto func = [&curve1, xo = commonXmin](const double t) -> double
+    {
+      return curve1.getPoint(t).x - xo;
+    };
+    const double tleft1 = math::findUniqueFunctionRoot(tmin1, tmax1, func);
+    return std::tuple{ commonXmin, tleft1, tleft2 };
+  }
+  else
+  {
+    const double commonXmin = scp1.pointOfxmin().x;
+    const double tleft1 = scp1.tOfxmin();
+    const double tleft2 = scp2.tOfxmin();
+    return std::tuple{ commonXmin, tleft1, tleft2 };
+  }
 }
 
 //-----------------------------------------------------------------------------

@@ -175,8 +175,10 @@ namespace geom2d
         const baseCurve& curvePlatoY
       );
 
-    // Ќаходим точку пересечени€ методом ступеньки,
-    // когда известно, что пересечение точно одно
+    // Ќаходим точку двух кривых
+    // в предположении что они точно пересекаютс€ 1 раз
+    // (если одна крива€ убывает, а друга€ возрастает вдоль оси X или Y то такие кривые точно пересекаютс€ 1 раз)
+    // так же эта функци€ будет справедлива когда кривые квази параллельны ос€м координат
     static
       std::optional<geom2d::IntersecctionSolutionType>
       findUniqueIntersection
@@ -186,9 +188,58 @@ namespace geom2d
         const baseCurve& curve1,
         const double tmin2,
         const double tmax2,
-        const baseCurve& curve2,
-        const double toleranceOfSolution = math::tolerance::tolPoint * 0.1
+        const baseCurve& curve2
       );
+
+    // Ќаходим точку двух кривых
+    // в предположении что они точно пересекаютс€ 1 раз
+    // (если одна крива€ убывает, а друга€ возрастает вдоль оси X или Y то такие кривые точно пересекаютс€ 1 раз)
+    // так же эта функци€ будет справедлива когда кривые квази параллельны ос€м координат
+    // ƒанна€ функци€ отличаетс€ от предыдущей тем, что известна референстна€ крива€
+    // ћетод делени€ отрезка пополам при поиске точки пересечени€ примен€етс€ ко второй кривой (не референсной)
+    // Ќаибольший размер референсной кривой - вдоль оси X
+    static
+      std::optional<geom2d::IntersecctionSolutionType>
+      findUniqueIntersectionRefAlongX
+      (
+        const double trefmin,
+        const double trefmax,
+        const baseCurve& referenceCurve,
+        const double tothmin,
+        const double tothmax,
+        const baseCurve& otherCurve
+      );
+
+    // -//-
+    // Ќаибольший размер референсной кривой - вдоль оси Y
+    static
+      std::optional<geom2d::IntersecctionSolutionType>
+      findUniqueIntersectionRefAlongY
+      (
+        const double trefmin,
+        const double trefmax,
+        const baseCurve& referenceCurve,
+        const double tothmin,
+        const double tothmax,
+        const baseCurve& otherCurve
+      );
+
+    // ‘ункци€ возвращает значени€ параметров дл€ общего (наибольшего из двух) левого кра€ ќƒ« по X
+    // I - commonXmin - max of minX of two curves
+    // II - tof commonXmin of first curve
+    // III - tof commonXmin of second curve
+    static
+      std::tuple<double, double, double>
+      findLargestCommonXmin
+      (
+        const double tmin1,
+        const double tmax1,
+        const baseCurve & curve1,
+        const double tmin2,
+        const double tmax2,
+        const baseCurve & curve2
+      );
+
 
   private:
 
