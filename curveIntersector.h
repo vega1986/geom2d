@@ -224,23 +224,6 @@ namespace geom2d
         const baseCurve& otherCurve
       );
 
-    // Функция возвращает значения параметров для общего (наибольшего из двух) левого края ОДЗ по X
-    // I - commonXmin - max of minX of two curves
-    // II - tof commonXmin of first curve
-    // III - tof commonXmin of second curve
-    static
-      std::tuple<double, double, double>
-      findLargestCommonXmin
-      (
-        const double tmin1,
-        const double tmax1,
-        const baseCurve & curve1,
-        const double tmin2,
-        const double tmax2,
-        const baseCurve & curve2
-      );
-
-
   private:
 
     const baseCurve & m_curve1;
