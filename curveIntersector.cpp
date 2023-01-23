@@ -51,6 +51,8 @@ void geom2d::curveIntersector::perform()
   }
 }
 
+//-----------------------------------------------------------------------------
+
 void geom2d::curveIntersector::perform(
   const double tmin1,
   const double tmax1,
@@ -948,6 +950,8 @@ std::optional<geom2d::IntersecctionSolutionType>
   return std::nullopt;
 }
 
+//-----------------------------------------------------------------------------
+
 std::optional<geom2d::IntersecctionSolutionType>
   geom2d::curveIntersector::execPlatoXAndPlatoX
   (
@@ -1102,6 +1106,8 @@ std::optional<geom2d::IntersecctionSolutionType>
   }
   return std::nullopt;
 }
+
+//-----------------------------------------------------------------------------
 
 std::optional<geom2d::IntersecctionSolutionType>
   geom2d::curveIntersector::execPlatoXAndPlatoY
@@ -1385,7 +1391,7 @@ geom2d::curveIntersector::findUniqueIntersection
   return std::nullopt;
 }
 
-//
+//-----------------------------------------------------------------------------
 
 std::optional<geom2d::IntersecctionSolutionType>
   geom2d::curveIntersector::findUniqueIntersectionRefAlongX
