@@ -6,6 +6,7 @@
 #include "Axis.h"
 #include "StatOfCurvePiece.h"
 #include "CommonRangeHelper.h"
+#include "solver_unique_intersection.h"
 
 #include <vector>
 #include <array>
@@ -1404,6 +1405,12 @@ std::optional<geom2d::IntersecctionSolutionType>
     const baseCurve& otherCurve
   )
 {
+  using namespace geom2d::uniqueIntersection;
+  solver<DataGetterOfX> the_solver{trefmin, trefmax, referenceCurve, tothmin, tothmax, otherCurve };
+
+  return the_solver.execute();
+
+#if 0
   const auto Pref = referenceCurve.getPoint(trefmin);
   const auto Qref = referenceCurve.getPoint(trefmax);
   StatOfCurvePiece scpRef{ trefmin, Pref, trefmax, Qref };
@@ -1547,6 +1554,7 @@ std::optional<geom2d::IntersecctionSolutionType>
     }
   }
   return std::nullopt;
+#endif
 }
 
 std::optional<geom2d::IntersecctionSolutionType>

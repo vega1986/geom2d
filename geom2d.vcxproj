@@ -155,6 +155,7 @@
     <ClInclude Include="math.h" />
     <ClInclude Include="point.h" />
     <ClInclude Include="segmentCurve.h" />
+    <ClInclude Include="solver_unique_intersection.h" />
     <ClInclude Include="StatOfCurvePiece.h" />
     <ClInclude Include="vector.h" />
   </ItemGroup>

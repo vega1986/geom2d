@@ -95,5 +95,8 @@
     <ClInclude Include="CommonRangeHelper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="solver_unique_intersection.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
