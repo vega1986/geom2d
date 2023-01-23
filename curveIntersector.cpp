@@ -1424,5 +1424,8 @@ std::optional<geom2d::IntersecctionSolutionType>
     const baseCurve& otherCurve
   )
 {
+  using namespace geom2d::uniqueIntersection;
+  solver<DataGetterOfY> the_solver{ trefmin, trefmax, referenceCurve, tothmin, tothmax, otherCurve };
 
+  return the_solver.execute();
 }
