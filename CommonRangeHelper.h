@@ -5,6 +5,7 @@
 #include "point.h"
 #include "baseCurve.h"
 #include "StatOfCurvePiece.h"
+#include "findFunctionRoots.h"
 
 namespace geom2d
 {
@@ -146,7 +147,7 @@ namespace geom2d
 
         auto func = [&getter2, value = commonMinCoord](const double t) -> double
         {
-          return getCoord.getCoord(t) - value;
+          return getter2.getCoord(t) - value;
         };
         // *
         const auto tOfMinCoord2 = math::findUniqueFunctionRoot(getter2.getTmin(), getter2.getTmax(), func);
@@ -194,7 +195,7 @@ namespace geom2d
 
         auto func = [&getter1, value = commonMaxCoord](const double t) -> double
         {
-          return getCoord.getCoord(t) - value;
+          return getter1.getCoord(t) - value;
         };
         // *
         const auto tOfMaxCoord1 = math::findUniqueFunctionRoot(getter1.getTmin(), getter1.getTmax(), func);
@@ -213,8 +214,8 @@ namespace geom2d
           return getter2.getCoord(t) - value;
         };
         const auto tOfMaxCoord2 = math::findUniqueFunctionRoot(getter2.getTmin(), getter2.getTmax(), func);
-        const auto pointOfMinCoord2 = getter2.getPoint(tOfMaxCoord2);
-        return std::tuple{ commonMinCoord, tOfMaxCoord1, pointOfMinCoord1, tOfMinCoord2, pointOfMinCoord2 };
+        const auto pointOfMaxCoord2 = getter2.getPoint(tOfMaxCoord2);
+        return std::tuple{ commonMaxCoord, tOfMaxCoord1, pointOfMaxCoord1, tOfMaxCoord2, pointOfMaxCoord2 };
       }
       else
       {
