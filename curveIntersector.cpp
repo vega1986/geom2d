@@ -1280,54 +1280,6 @@ std::optional<geom2d::IntersecctionSolutionType>
   // далее проверяем полноценное пересечение
   
   
-#if 0
-  const bool doNotIntersected =
-    ((xAABB.xmin() - yAABB.xmax()) > math::tolerance::tolPoint)
-      or
-    ((yAABB.xmin() - xAABB.xmax()) > math::tolerance::tolPoint)
-      or
-    ((xAABB.ymin() - yAABB.ymax()) > math::tolerance::tolPoint)
-      or
-    ((yAABB.ymin() - xAABB.ymax()) > math::tolerance::tolPoint);
-
-  if (doNotIntersected)
-  {
-    return std::nullopt;
-  }
-
-  // положение кривой PlatoX по отношению к кривой PlatoY
-  XMutualPos mutPosByX {XMutualPos::inside};
-  if      (yAABB.xmax() <= xAABB.xmin()) mutPosByX = XMutualPos::right;
-  else if (yAABB.xmax() <= xAABB.xmax()) mutPosByX = XMutualPos::rightPartially;
-  else if (yAABB.xmin() <  xAABB.xmin()) mutPosByX = XMutualPos::inside;
-  else if (yAABB.xmin() <  xAABB.xmax()) mutPosByX = XMutualPos::leftPartially;
-  else if (xAABB.xmax() <= yAABB.xmin()) mutPosByX = XMutualPos::left;
-  else throw std::logic_error("impossible situ in intersection of PlatoX & PlatoY");
-
-  // положение кривой PlatoY по отношению к кривой PlatoX
-
-
-  if      ((yAABB.xmax() <= xAABB.xmin())) mutPosByX = XMutualPos::right;
-  // *********************************************************************************************************************
-  else if ((xAABB.xmin() <  yAABB.xmax())
-            and
-           (yAABB.xmax() <= xAABB.xmax())) mutPosByX = XMutualPos::rightPartially;
-  // *********************************************************************************************************************
-  else if ((yAABB.xmin() <  xAABB.xmin())
-            and
-           (xAABB.xmax() <  yAABB.xmax())) mutPosByX = XMutualPos::inside;
-  // *********************************************************************************************************************
-  else if ((yAABB.xmin() <  xAABB.xmax())
-            and
-           (xAABB.xmin() <= yAABB.xmin())) mutPosByX = XMutualPos::leftPartially;
-  // *********************************************************************************************************************
-  else if ((xAABB.xmax() <= yAABB.xmin())) mutPosByX = XMutualPos::left;
-  // *********************************************************************************************************************
-  else                                                   throw std::logic_error("impossible mutual position of PlatoX & PlatoY by x axis");
-
-  // положение кривой
-
-#endif
   return std::nullopt;
 }
 
