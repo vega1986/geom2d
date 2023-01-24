@@ -14,6 +14,25 @@
 #include <array>
 #include <algorithm>
 
+namespace geom2d
+{
+
+  // Исследуем решение, если первая и вторая кривая - PlatoX или PlatoY
+  template <CurveDataGetter dataGetter>
+  std::optional<IntersecctionSolutionType>
+    execParallelPlato
+    (
+      const double tmin1,
+      const double tmax1,
+      const baseCurve& curvePlato1,
+      const double tmin2,
+      const double tmax2,
+      const baseCurve& curvePlato2
+    )
+  {
+
+  }
+}
 //-----------------------------------------------------------------------------
 
 void geom2d::curveIntersector::perform()
@@ -628,64 +647,42 @@ std::optional<geom2d::IntersecctionSolutionType>
     const baseCurve& curvePlatoY
   )
 {
-  // кривая 1 - точка
-  // кривая 2 - плато 'Y = const'
+  std::initializer_list tsofPoint{ tminOfPoint , tmaxOfPoint };
 
-  bool intersectionFound{ false };
-  point intersectionPoint;
-  double tOfIntersectionOnCurvePoint{ 0.0 };
-  double tOfIntersectionOnCurvePlato{ 0.0 };
   double currentDistance = math::infinite::distance;
-
-  auto handlePointAndPlatoY =
-    [
-      &curvePoint,
-      &curvePlatoY,
-      &intersectionFound,
-      &intersectionPoint,
-      &tOfIntersectionOnCurvePoint,
-      &tOfIntersectionOnCurvePlato,
-      &currentDistance,
-      tminOfPlatoY,
-      tmaxOfPlatoY
-    ](const double tOfPoint)
+  double tofPoint = 0.0;
+  point pofPoint;
+  double tofPlato = 0.0;
+  point pofPlato;
+  bool theMinDistanceFound = false;
+  for (const auto at : tsofPoint)
   {
-    const point pnt = curvePoint.getPoint(tOfPoint);
-    const auto tOfPlatoY =
-      performPointVSAnyAlongX(pnt, tminOfPlatoY, tmaxOfPlatoY, curvePlatoY);
-    if (tOfPlatoY)
+    using namespace point_and_curve_alongaxis;
+    const point P = curvePoint.getPoint(at);
+
+    solver<DataGetterOfX> solv{ P , tminOfPlatoY , tmaxOfPlatoY , curvePlatoY };
+    const auto result = solv.execute();
+
+    if (not result) continue;
+    const auto theT = result.value();
+    const auto thePoint = curvePlatoY.getPoint(theT);
+    const auto dist = point::distance(P, thePoint);
+    if (dist < currentDistance)
     {
-      const auto pointOnPlatoY = curvePlatoY.getPoint(tOfPlatoY.value());
-      const auto dist = point::distance(pnt, pointOnPlatoY);
-
-      if (dist < currentDistance)
-      {
-        intersectionFound = true;
-        currentDistance = dist;
-        intersectionPoint = 0.5 * (pnt + pointOnPlatoY);
-        tOfIntersectionOnCurvePoint = tOfPoint;
-        tOfIntersectionOnCurvePlato = tOfPlatoY.value();
-      }
+      theMinDistanceFound = true;
+      currentDistance = dist;
+      tofPoint = at;
+      pofPoint = P;
+      tofPlato = theT;
+      pofPlato = thePoint;
     }
-  };
-
-  handlePointAndPlatoY(tminOfPoint);
-  handlePointAndPlatoY(tmaxOfPoint);
-
-  if (intersectionFound)
-  {
-    return
-      std::tuple
-        {
-          intersectionPoint,
-          tOfIntersectionOnCurvePoint,
-          tOfIntersectionOnCurvePlato
-        };
   }
-  else
+
+  if (theMinDistanceFound and point::isSame(pofPoint, pofPlato))
   {
-    return std::nullopt;
+    return IntersecctionSolutionType{ 0.5 * (pofPoint + pofPlato), tofPoint , tofPlato };
   }
+  return std::nullopt;
 }
 
 //-----------------------------------------------------------------------------
@@ -701,69 +698,72 @@ std::optional<geom2d::IntersecctionSolutionType>
     const baseCurve& curveAny
   )
 {
-  // кривая 1 - точка
-  // кривая 2 - не платно и не точка
+  std::initializer_list listofTofPoint{ tminOfPoint , tmaxOfPoint };
 
-  bool intersectionFound{ false };
-  point intersectionPoint;
-  double tOfIntersectionOnPoint{ 0.0 };
-  double tOfIntersectionOnAny{ 0.0 };
   double currentDistance = math::infinite::distance;
 
-  // исследуем вторую кривую вдоль X или Y
-  auto handleParsingAlongXorY = 
-  [
-    &curvePoint,
-    &curveAny,
-    tminOfAny,
-    tmaxOfAny,
-    &currentDistance,
-    &intersectionFound,
-    &intersectionPoint,
-    &tOfIntersectionOnPoint,
-    &tOfIntersectionOnAny
-  ] (const double tOfAny, const parseAxis parseThrough)
+  double tpointResult = 0.0;
+  point ppointResult;
+  
+  double tanyResult = 0.0;
+  point panyResult;
+  
+  bool solutionFound = false;
+  // вдоль оси X
+  for (const auto t : listofTofPoint)
   {
-    const auto pnt = curvePoint.getPoint(tOfAny);
-    const auto tOfPnt = (parseThrough == parseAxis::X) ?
-      performPointVSAnyAlongX(pnt, tminOfAny, tmaxOfAny, curveAny) :
-      performPointVSAnyAlongY(pnt, tminOfAny, tmaxOfAny, curveAny);
-    if (tOfPnt)
+    const auto p = curvePoint.getPoint(t);
+    using namespace point_and_curve_alongaxis;
+    solver<DataGetterOfX> solv{ p, tminOfAny, tmaxOfAny, curveAny };
+    const auto result = solv.execute();
+
+    if (not result) continue;
+
+    const auto tonAny = result.value();
+    const auto ponAny = curveAny.getPoint(tonAny);
+
+    const auto dist = point::distance(p, ponAny);
+
+    if (dist < currentDistance)
     {
-      const auto pntOnCurve = curveAny.getPoint(tOfPnt.value());
-      const auto dist = point::distance(pnt, pntOnCurve);
-
-      if (dist < currentDistance)
-      {
-        currentDistance = dist;
-        intersectionFound = true;
-        intersectionPoint = 0.5 * (pnt + pntOnCurve);
-        tOfIntersectionOnPoint = tOfAny;
-        tOfIntersectionOnAny = tOfPnt.value();
-      }
+      solutionFound = true;
+      currentDistance = dist;
+      tpointResult = t;
+      ppointResult = p;
+      tanyResult = tonAny;
+      panyResult = ponAny;
     }
-  };
-
-  handleParsingAlongXorY(tminOfPoint, parseAxis::X);
-  handleParsingAlongXorY(tmaxOfPoint, parseAxis::X);
-
-  handleParsingAlongXorY(tminOfPoint, parseAxis::Y);
-  handleParsingAlongXorY(tmaxOfPoint, parseAxis::Y);
-
-  if (intersectionFound)
-  {
-    return
-      std::tuple
-      {
-        intersectionPoint,
-        tOfIntersectionOnPoint,
-        tOfIntersectionOnAny
-      };
   }
-  else
+  // вдоль оси Y
+  for (const auto t : listofTofPoint)
   {
-    return std::nullopt;
+    const auto p = curvePoint.getPoint(t);
+    using namespace point_and_curve_alongaxis;
+    solver<DataGetterOfY> solv{ p, tminOfAny, tmaxOfAny, curveAny };
+    const auto result = solv.execute();
+
+    if (not result) continue;
+
+    const auto tonAny = result.value();
+    const auto ponAny = curveAny.getPoint(tonAny);
+
+    const auto dist = point::distance(p, ponAny);
+
+    if (dist < currentDistance)
+    {
+      solutionFound = true;
+      currentDistance = dist;
+      tpointResult = t;
+      ppointResult = p;
+      tanyResult = tonAny;
+      panyResult = ponAny;
+    }
   }
+  if (solutionFound)
+  {
+    return IntersecctionSolutionType{ 0.5 * (ppointResult + panyResult), tpointResult , tanyResult };
+  }
+  return std::nullopt;  
 }
 
 //-----------------------------------------------------------------------------
@@ -779,147 +779,68 @@ std::optional<geom2d::IntersecctionSolutionType>
     const baseCurve& curvePlatoY2
   )
 {
-  // про кривую №1
-  const auto P1 = curvePlatoY1.getPoint(tmin1);
-  const auto Q1 = curvePlatoY1.getPoint(tmax1);
-
-  const auto less1 = (P1.x < Q1.x) ? P1 : Q1;
-  const auto more1 = (P1.x < Q1.x) ? Q1 : P1;
-
-  const auto tofLess1 = (P1.x < Q1.x) ? tmin1 : tmax1;
-  const auto tofMore1 = (P1.x < Q1.x) ? tmax1 : tmin1;
-
-  aabb aabbOfPlatoY1(std::initializer_list{ P1, Q1 });
-
-  // про кривую №2
-  const auto P2 = curvePlatoY2.getPoint(tmin2);
-  const auto Q2 = curvePlatoY2.getPoint(tmax2);
-
-  const auto less2 = (P2.x < Q2.x) ? P2 : Q2;
-  const auto more2 = (P2.x < Q2.x) ? Q2 : P2;
-
-  const auto tofLess2 = (P2.x < Q2.x) ? tmin2 : tmax2;
-  const auto tofMore2 = (P2.x < Q2.x) ? tmax2 : tmin2;
-
-  aabb aabbOfPlatoY2(std::initializer_list{ P2, Q2 });
+  double currentDistance = math::infinite::distance;
+  double tof1 = 0.0;
+  point pof1;
+  double tof2 = 0.0;
+  point pof2;
+  bool theMinDistanceFound = false;
   
-  const bool doNotIntersected =
-    ((aabbOfPlatoY1.ymin() - aabbOfPlatoY2.ymax()) > math::tolerance::tolPoint)
-      or
-    ((aabbOfPlatoY2.ymin() - aabbOfPlatoY1.ymax()) > math::tolerance::tolPoint);
+  // рассматриваем точки 1-ой кривой и их положение по отношению ко кривой 2
+  std::initializer_list ts1{ tmin1 , tmax1 };
+  for (const auto at : ts1)
+  {
+    using namespace point_and_curve_alongaxis;
+    const point P = curvePlatoY1.getPoint(at);
 
-  if (doNotIntersected)
-  {
-    return std::nullopt;
+    solver<DataGetterOfX> solv{ P , tmin2 , tmax2 , curvePlatoY2 };
+    const auto result = solv.execute();
+
+    if (not result) continue;
+    const auto theT = result.value();
+    const auto thePoint = curvePlatoY2.getPoint(theT);
+    const auto dist = point::distance(P, thePoint);
+    if (dist < currentDistance)
+    {
+      theMinDistanceFound = true;
+      currentDistance = dist;
+      tof1 = at;
+      pof1 = P;
+      tof2 = theT;
+      pof2 = thePoint;
+    }
   }
 
-  if (more1.x <= less2.x)
+  // рассматриваем точки 2-ой кривой и их положение по отношению ко кривой 1
+  std::initializer_list ts2{ tmin2 , tmax2 };
+  for (const auto at : ts2)
   {
-    if (point::isSame(more1, less2))
-    {
-      return std::tuple{0.5 * (more1 + less2), tofMore1, tofLess2};
-    }
-    else
-    {
-      return std::nullopt;
-    }
-  }
-  else if (more2.x <= less1.x)
-  {
-    if (point::isSame(more2, less1))
-    {
-      return std::tuple{0.5 * (more2 + less1), tofMore2, tofLess1};
-    }
-    else
-    {
-      return std::nullopt;
-    }
-  }
-  else
-  {
-    // есть пересечение интервалов
-    double commonXmin = 0.0;
-    double commonXmax = 0.0;
-    double t1OfCommonXmin = 0.0;
-    double t2OfCommonXmin = 0.0;
-    double t1OfCommonXmax = 0.0;
-    double t2OfCommonXmax = 0.0;
-    // рассматриваем начало общего интервала
-    if (less1.x < less2.x)
-    {
-      commonXmin = less2.x;
-      t2OfCommonXmin = tofLess2;
-      auto func = [&curvePlatoY1, xo = commonXmin](const double t) -> double
-      {
-        return curvePlatoY1.getPoint(t).x - xo;
-      };
-      t1OfCommonXmin = math::findUniqueFunctionRoot(tmin1, tmax1, func);
+    using namespace point_and_curve_alongaxis;
+    const point P = curvePlatoY2.getPoint(at);
 
-    }
-    else if (less2.x < less1.x)
+    solver<DataGetterOfX> solv{ P , tmin1 , tmax1 , curvePlatoY1 };
+    const auto result = solv.execute();
+
+    if (not result) continue;
+    const auto theT = result.value();
+    const auto thePoint = curvePlatoY1.getPoint(theT);
+    const auto dist = point::distance(P, thePoint);
+    if (dist < currentDistance)
     {
-      commonXmin = less1.x;
-      t1OfCommonXmin = tofLess1;
-      auto func = [&curvePlatoY2, xo = commonXmin](const double t) -> double
-      {
-        return curvePlatoY2.getPoint(t).x - xo;
-      };
-      t2OfCommonXmin = math::findUniqueFunctionRoot(tmin2, tmax2, func);
-    }
-    else
-    {
-      commonXmin = less1.x;
-      t1OfCommonXmin = tofLess1;
-      t2OfCommonXmin = tofLess2;
-    }
-    
-    // рассматриваем конец общего интервала
-    if (more1.x < more2.x)
-    {
-      commonXmax = more1.x;
-      t1OfCommonXmax = tofMore1;
-      auto func = [&curvePlatoY2, xo = commonXmax](const double t) -> double
-      {
-        return curvePlatoY2.getPoint(t).x - xo;
-      };
-      t2OfCommonXmax = math::findUniqueFunctionRoot(tmin2, tmax2, func);
-    }
-    else if (more2.x < more1.x)
-    {
-      commonXmax = more2.x;
-      t2OfCommonXmax = tofMore2;
-      auto func = [&curvePlatoY1, xo = commonXmax](const double t) -> double
-      {
-        return curvePlatoY1.getPoint(t).x - xo;
-      };
-      t1OfCommonXmax = math::findUniqueFunctionRoot(tmin1, tmax1, func);
-    }
-    else
-    {
-      commonXmax = more1.x;
-      t1OfCommonXmax = tofMore1;
-      t2OfCommonXmax = tofMore2;
-    }
-    // теперь проверяем три точки:
-    // - начало
-    // - конец
-    // общего отразка
-    // Если хотя бы на в одной точке кривые совпадают, возвращаем точку пересечения
-    // Середину рассматривать не буду - лень
-    const auto pointOn1OfLower = curvePlatoY1.getPoint(t1OfCommonXmin);
-    const auto pointOn2OfLower = curvePlatoY2.getPoint(t2OfCommonXmin);
-    if (point::isSame(pointOn1OfLower, pointOn2OfLower))
-    {
-      return std::tuple{ 0.5 * (pointOn1OfLower + pointOn2OfLower), t1OfCommonXmin, t2OfCommonXmin };
-    }
-    const auto pointOn1OfUpper = curvePlatoY1.getPoint(t1OfCommonXmax);
-    const auto pointOn2OfUpper = curvePlatoY2.getPoint(t2OfCommonXmax);
-    if (point::isSame(pointOn1OfUpper, pointOn2OfUpper))
-    {
-      return std::tuple{ 0.5 * (pointOn1OfUpper + pointOn2OfUpper), t1OfCommonXmax, t2OfCommonXmax };
+      theMinDistanceFound = true;
+      currentDistance = dist;
+      tof2 = at;
+      pof2 = P;
+      tof1 = theT;
+      pof1 = thePoint;
     }
   }
-  return std::nullopt;
+  
+  if (theMinDistanceFound and point::isSame(pof1, pof2))
+  {
+    return IntersecctionSolutionType{ 0.5 * (pof1 + pof2), tof1 , tof2 };
+  }
+  return std::nullopt;  
 }
 
 //-----------------------------------------------------------------------------

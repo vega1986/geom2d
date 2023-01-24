@@ -44,7 +44,16 @@ namespace geom2d
         }
         else
         {
-          return theGetter.getTofCoord(dataGetter::abscissaOf(P));
+          const auto tofCurve = theGetter.getTofCoord(dataGetter::abscissaOf(P));
+          const auto pofCurve = curve.getPoint(tofCurve);
+          if (point::isSame(P, pofCurve))
+          {
+            return tofCurve;
+          }
+          else
+          {
+            return std::nullopt;
+          }
         }
         return std::nullopt;
       }
