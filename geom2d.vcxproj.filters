@@ -57,6 +57,18 @@
     <ClCompile Include="solver_point_and_platox.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="solver_point_and_point.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="solver_point_and_alongx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="solver_point_and_alongy.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="solver_point_and_alongaxis.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bezierCurve2d.h">
@@ -108,6 +120,18 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="solver_point_and_platox.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="solver_point_and_point.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="solver_point_and_alongx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="solver_point_and_alongy.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="solver_point_and_alongaxis.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

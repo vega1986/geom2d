@@ -35,7 +35,7 @@ namespace geom2d
   //         //
   /////////////
   template <class T>
-  concept CurveDataGetter = requires(const T a, const double t, const point & pnt)
+  concept CurveDataGetter = requires(const T a, const double t, const double x, const point & pnt)
   {
     { a.getPoint(t)     } -> std::convertible_to<geom2d::point>;
     { a.getCoord(t)     } -> std::convertible_to<double>;
@@ -49,6 +49,8 @@ namespace geom2d
     { a.getMaxCoord()   } -> std::convertible_to<double>;
     { a.getPointOfMax() } -> std::convertible_to<geom2d::point>;
     { a.getTofMax()     } -> std::convertible_to<double>;
+
+    { a.getTofCoord(x)  } -> std::convertible_to<double>;
 
     { T::abscissaOf(pnt) } -> std::convertible_to<double>;
     { T::ordinateOf(pnt) } -> std::convertible_to<double>;
@@ -84,6 +86,9 @@ namespace geom2d
     const double getMaxCoord() const { return scp.pointOfxmax().x; }
     const point getPointOfMax() const { return scp.pointOfxmax(); }
     const double getTofMax() const { return scp.tOfxmax(); }
+
+
+    const double getTofCoord(const double theX) const { return curve.tofX(tmin, tmax, theX); }
 
 
     static inline const double abscissaOf(const point& pnt) { return pnt.x; }
@@ -126,6 +131,9 @@ namespace geom2d
     const double getMaxCoord() const { return scp.pointOfymax().y; }
     const point getPointOfMax() const { return scp.pointOfymax(); }
     const double getTofMax() const { return scp.tOfymax(); }
+
+
+    const double getTofCoord(const double theY) const { return curve.tofY(tmin, tmax, theY); }
 
 
     static inline const double abscissaOf(const point& pnt) { return pnt.y; }

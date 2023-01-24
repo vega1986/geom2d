@@ -52,9 +52,6 @@ namespace geom2d
     //               //
     ///////////////////
 
-    // анализируем пересечение кривых, когда они обе сводятся к точке
-    static bool performPointXPoint(const point p, const point q);
-
     // Исследуем решение, если первая и вторая кривая - точки
     static
       std::optional<geom2d::IntersecctionSolutionType>

@@ -9,6 +9,7 @@
 #include "solver_unique_intersection.h"
 #include "solver_point_and_platox.h"
 #include "solver_point_and_platoy.h"
+#include "solver_point_and_point.h"
 
 #include <vector>
 #include <array>
@@ -409,13 +410,6 @@ geom2d::curveIntersector::rootsOfCurveVelocity(const baseCurve & curve)
 
 //-----------------------------------------------------------------------------
 
-bool geom2d::curveIntersector::performPointXPoint(const point p, const point q)
-{
-  return point::isSame(p, q);
-}
-
-//-----------------------------------------------------------------------------
-
 std::optional<geom2d::IntersecctionSolutionType>
   geom2d::curveIntersector::execPointAndPoint
   (
@@ -427,62 +421,46 @@ std::optional<geom2d::IntersecctionSolutionType>
     const baseCurve& curvePoint2
   )
 {
-  bool intersectionFound{ false };
-  point intersectionPoint;
-  double tOnCurve1OfIntersection{ 0.0 };
-  double tOnCurve2OfIntersection{ 0.0 };
-
-  double currentDistance = 1.0e+10;
-  auto handlePairOfPoints =
-    [
-      &curvePoint1,
-      &curvePoint2,
-      &intersectionFound,
-      &intersectionPoint,
-      &tOnCurve1OfIntersection,
-      &tOnCurve2OfIntersection,
-      &currentDistance
-    ]
-  (const double tOnCurve1, const double tOnCurve2)
+  // рассматриваем всевозможные пары точек
+  std::initializer_list<std::pair<double, double>> listOfPairsOfT
   {
-    const auto pnt1 = curvePoint1.getPoint(tOnCurve1);
-    const auto pnt2 = curvePoint2.getPoint(tOnCurve2);
-
-    const auto result = performPointXPoint(pnt1, pnt2);
-
-    if (result)
-    {
-      const auto dist = point::distance(pnt1, pnt2);
-      if (dist < currentDistance)
-      {
-        currentDistance = dist;
-        intersectionFound = true;
-        intersectionPoint = (pnt1 + pnt2) / 2.0;
-        tOnCurve1OfIntersection = tOnCurve1;
-        tOnCurve2OfIntersection = tOnCurve2;
-      }
-    }
+    {tminOfPoint1, tminOfPoint2},
+    {tminOfPoint1, tmaxOfPoint2},
+    {tmaxOfPoint1, tminOfPoint2},
+    {tmaxOfPoint1, tmaxOfPoint2}
   };
-  
-  handlePairOfPoints(tminOfPoint1, tminOfPoint2);
-  handlePairOfPoints(tminOfPoint1, tmaxOfPoint2);
-  handlePairOfPoints(tmaxOfPoint1, tminOfPoint2);
-  handlePairOfPoints(tmaxOfPoint1, tmaxOfPoint2);
 
-  if (intersectionFound)
+  double currentDistance = math::infinite::distance;
+  double tofExtrema1 = 0.0;
+  point pofExtrema1;
+  double tofExtrema2 = 0.0;
+  point pofExtrema2;
+  bool theMinimalFound = false;
+  for (const auto [t1, t2] : listOfPairsOfT)
   {
-    return
-      std::tuple
-      {
-        intersectionPoint,
-        tOnCurve1OfIntersection,
-        tOnCurve2OfIntersection
-      };
+    const auto p1 = curvePoint1.getPoint(t1);
+    const auto p2 = curvePoint2.getPoint(t2);
+    const auto dist12 = point::distance(p1, p2);
+    if (dist12 < currentDistance)
+    {
+      theMinimalFound = true;
+      currentDistance = dist12;
+      tofExtrema1 = t1;
+      pofExtrema1 = p1;
+      tofExtrema2 = t2;
+      pofExtrema2 = p2;
+    }
   }
-  else
+
+  if (not theMinimalFound) return std::nullopt;
+
+  using namespace geom2d::point_and_point;
+  solver solv{ pofExtrema1 , pofExtrema2 };
+  if (solv.execute())
   {
-    return std::nullopt;
+    return IntersecctionSolutionType{ 0.5 * (pofExtrema1 + pofExtrema2), tofExtrema1 , tofExtrema2 };
   }
+  return std::nullopt;
 }
 
 //-----------------------------------------------------------------------------
@@ -640,7 +618,7 @@ geom2d::curveIntersector::execPointAndPlatoX(
     }
   };
 
-  handlePointAndPlatoX(tmaxOfPoint);
+  handlePointAndPlatoX(tminOfPoint);
   handlePointAndPlatoX(tmaxOfPoint);
 
   if (intersectionFound)
