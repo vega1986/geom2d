@@ -51,19 +51,7 @@
     <ClCompile Include="CommonRangeHelper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="solver_point_and_platoy.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="solver_point_and_platox.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="solver_point_and_point.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="solver_point_and_alongx.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="solver_point_and_alongy.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="solver_point_and_alongaxis.cpp">
@@ -116,19 +104,7 @@
     <ClInclude Include="solver_unique_intersection.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="solver_point_and_platoy.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="solver_point_and_platox.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="solver_point_and_point.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="solver_point_and_alongx.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="solver_point_and_alongy.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="solver_point_and_alongaxis.h">

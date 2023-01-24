@@ -13,7 +13,7 @@ namespace geom2d
     class solver
     {
     public:
-      solver(const double theP, const double theTmin, const double theTmax, const baseCurve& theCurve)
+      solver(const point theP, const double theTmin, const double theTmax, const baseCurve& theCurve)
         :P{ theP }, tmin{ theTmin }, tmax{ theTmax }, curve{ theCurve } {}
 
       std::optional<double>

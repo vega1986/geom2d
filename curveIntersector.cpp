@@ -7,8 +7,7 @@
 #include "StatOfCurvePiece.h"
 #include "CommonRangeHelper.h"
 #include "solver_unique_intersection.h"
-#include "solver_point_and_platox.h"
-#include "solver_point_and_platoy.h"
+#include "solver_point_and_alongaxis.h"
 #include "solver_point_and_point.h"
 
 #include <vector>
@@ -578,63 +577,42 @@ geom2d::curveIntersector::execPointAndPlatoX(
   const double tmaxOfPlatoX,
   const baseCurve& curvePlatoX)
 {
-  // кривая 1 - точка
-  // кривая 2 - плато 'X = const'
-  
-  bool intersectionFound{ false };
-  point intersectionPoint;
-  double tOfIntersectionOnCurvePoint{ 0.0 };
-  double tOfIntersectionOnCurvePlato{ 0.0 };
+  std::initializer_list tsofPoint{ tminOfPoint , tmaxOfPoint };
+
   double currentDistance = math::infinite::distance;
-
-  auto handlePointAndPlatoX =
-    [
-      &curvePoint,
-      &curvePlatoX,
-      &intersectionFound,
-      &intersectionPoint,
-      &tOfIntersectionOnCurvePoint,
-      &tOfIntersectionOnCurvePlato,
-      &currentDistance,
-      tminOfPlatoX,
-      tmaxOfPlatoX
-    ](const double tOfPoint)
+  double tofPoint = 0.0;
+  point pofPoint;
+  double tofPlato = 0.0;
+  point pofPlato;
+  bool theMinDistanceFound = false;
+  for (const auto at : tsofPoint)
   {
-    const point pnt = curvePoint.getPoint(tOfPoint);
-    const auto tOfPlatoX = performPointVSAnyAlongY(pnt, tminOfPlatoX, tmaxOfPlatoX, curvePlatoX);
-    if (tOfPlatoX)
+    using namespace point_and_curve_alongaxis;
+    const point P = curvePoint.getPoint(at);
+    
+    solver<DataGetterOfY> solv{ P , tminOfPlatoX , tmaxOfPlatoX , curvePlatoX };
+    const auto result = solv.execute();
+
+    if (not result) continue;
+    const auto theT = result.value();
+    const auto thePoint = curvePlatoX.getPoint(theT);
+    const auto dist = point::distance(P, thePoint);
+    if (dist < currentDistance)
     {
-      const auto pointOnPlatoX = curvePlatoX.getPoint(tOfPlatoX.value());
-      const auto dist = point::distance(pnt, pointOnPlatoX);
-
-      if (dist < currentDistance)
-      {
-        intersectionFound = true;
-        currentDistance = dist;
-        intersectionPoint = 0.5 * (pnt + pointOnPlatoX);
-        tOfIntersectionOnCurvePoint = tOfPoint;
-        tOfIntersectionOnCurvePlato = tOfPlatoX.value();
-      }
+      theMinDistanceFound = true;
+      currentDistance = dist;
+      tofPoint = at;
+      pofPoint = P;
+      tofPlato = theT;
+      pofPlato = thePoint;
     }
-  };
-
-  handlePointAndPlatoX(tminOfPoint);
-  handlePointAndPlatoX(tmaxOfPoint);
-
-  if (intersectionFound)
-  {
-    return
-      std::tuple
-        {
-          intersectionPoint,
-          tOfIntersectionOnCurvePoint,
-          tOfIntersectionOnCurvePlato
-        };
   }
-  else
+  
+  if (theMinDistanceFound and point::isSame(pofPoint, pofPlato))
   {
-    return std::nullopt;
+    return IntersecctionSolutionType{0.5 * (pofPoint + pofPlato), tofPoint , tofPlato };
   }
+  return std::nullopt;
 }
 
 //-----------------------------------------------------------------------------
@@ -1118,9 +1096,9 @@ std::optional<geom2d::IntersecctionSolutionType>
     std::initializer_list<double> listoft{ tminOfPlatox, tmaxOfPlatox };
     for (const auto tofPlatoX : listoft)
     {
-      using namespace geom2d::point_and_platoy;
+      using namespace geom2d::point_and_curve_alongaxis;
       const auto pointofPlatoX = curvePlatoX.getPoint(tofPlatoX);
-      solver solv{ pointofPlatoX, tminOfPlatoy , tmaxOfPlatoy , curvePlatoY };
+      solver<DataGetterOfX> solv{ pointofPlatoX, tminOfPlatoy , tmaxOfPlatoy , curvePlatoY };
       const auto result = solv.execute();
       if (result)
       {
@@ -1136,9 +1114,9 @@ std::optional<geom2d::IntersecctionSolutionType>
     std::initializer_list<double> listoft{ tminOfPlatoy, tmaxOfPlatoy };
     for (const auto tofPlatoY : listoft)
     {
-      using namespace geom2d::point_and_platox;
+      using namespace geom2d::point_and_curve_alongaxis;
       const auto pointofPlatoY = curvePlatoY.getPoint(tofPlatoY);
-      solver solv{ pointofPlatoY, tminOfPlatox , tmaxOfPlatox , curvePlatoX };
+      solver<DataGetterOfY> solv{ pointofPlatoY, tminOfPlatox , tmaxOfPlatox , curvePlatoX };
       const auto result = solv.execute();
       if (result)
       {
