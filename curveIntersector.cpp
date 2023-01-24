@@ -7,6 +7,8 @@
 #include "StatOfCurvePiece.h"
 #include "CommonRangeHelper.h"
 #include "solver_unique_intersection.h"
+#include "solver_point_and_platox.h"
+#include "solver_point_and_platoy.h"
 
 #include <vector>
 #include <array>
@@ -237,7 +239,20 @@ void geom2d::curveIntersector::perform(
       case curveClass::Normal:
         break;
       case curveClass::PlatoX:
-        break;
+      {
+        // вторая кривая - PlatoX
+        // первая кривая - PlatoY
+        const auto result =
+          execPlatoXAndPlatoY(tmin2, tmax2, m_curve2, tmin1, tmax1, m_curve1);
+        if (result)
+        {
+          const auto [intPoint, tonCurve2, tonCurve1] = result.value();
+          solutionPoints.push_back(intPoint);
+          solutionParameterOnCurve1.push_back(tonCurve1);
+          solutionParameterOnCurve2.push_back(tonCurve2);
+        }
+      }
+      break;
       case curveClass::PlatoY:
       {
         // обе кривые - PlatoY
@@ -1120,167 +1135,43 @@ std::optional<geom2d::IntersecctionSolutionType>
     const double tmaxOfPlatoy,
     const baseCurve& curvePlatoY)
 {
-  /////////
-  //     //
-  //  *  // Platox curve
-  //     //
-  /////////
-  // важные параметры кривой квази-параллельной оси OY (PlatoX)
-  const auto PofPlatox = curvePlatoX.getPoint(tminOfPlatox);
-  const auto QofPlatox = curvePlatoX.getPoint(tmaxOfPlatox);
-  // ***
-  const auto pointOfYmin = (PofPlatox.y < QofPlatox.y) ? PofPlatox : QofPlatox;
-  const auto tOfYmin = (PofPlatox.y < QofPlatox.y) ? tminOfPlatox : tmaxOfPlatox;
-  // ***
-  const auto pointOfYmax = (PofPlatox.y < QofPlatox.y) ? QofPlatox : PofPlatox;
-  const auto tOfYmax = (PofPlatox.y < QofPlatox.y) ? tmaxOfPlatox : tminOfPlatox;
-  // ***
-  const aabb pyAABB{ std::initializer_list{PofPlatox, QofPlatox} };
-  /////////
-  //     //
-  //  *  // Platoy curve
-  //     //
-  /////////
-  // важные параметры кривой квази-параллельной оси OX (PlatoY)
-  const auto PofPlatoy = curvePlatoY.getPoint(tminOfPlatoy);
-  const auto QofPlatoy = curvePlatoY.getPoint(tmaxOfPlatoy);
-  // ***
-  const auto pointOfXmin = (PofPlatoy.x < QofPlatoy.x) ? PofPlatoy : QofPlatoy;
-  const auto tOfXmin = (PofPlatoy.x < QofPlatoy.x) ? tminOfPlatoy : tmaxOfPlatoy;
-  // ***
-  const auto pointOfXmax = (PofPlatoy.x < QofPlatoy.x) ? QofPlatoy : PofPlatoy;
-  const auto tOfXmax = (PofPlatoy.x < QofPlatoy.x) ? tmaxOfPlatoy : tminOfPlatoy;
-  // ***
-  const aabb pxAABB{ std::initializer_list{PofPlatoy, QofPlatoy} };
-
-  // рассматриваем граничные точки кривой PlatoX
-  auto marginalIntersectorOfPointWithPlatoY =
-    [
-      &curvePlatoX,
-      &curvePlatoY,
-      pointOfXmin,
-      tOfXmin,
-      tminOfPlatoy,
-      pointOfXmax,
-      tOfXmax,
-      tmaxOfPlatoy
-    ]
-  (const double tVertexPlatoX) -> std::optional<geom2d::IntersecctionSolutionType>
+  // проверяем сначала концы кривой curvePlatoX
   {
-    const auto vertexOfPlatoX = curvePlatoX.getPoint(tVertexPlatoX);
-    if (vertexOfPlatoX.x <= pointOfXmin.x)
+    std::initializer_list<double> listoft{ tminOfPlatox, tmaxOfPlatox };
+    for (const auto tofPlatoX : listoft)
     {
-      if (point::isSame(vertexOfPlatoX, pointOfXmin))
+      using namespace geom2d::point_and_platoy;
+      const auto pointofPlatoX = curvePlatoX.getPoint(tofPlatoX);
+      solver solv{ pointofPlatoX, tminOfPlatoy , tmaxOfPlatoy , curvePlatoY };
+      const auto result = solv.execute();
+      if (result)
       {
-        return std::tuple{ 0.5 * (vertexOfPlatoX + pointOfXmin), tVertexPlatoX , tOfXmin };
-      }
-      else
-      {
-        return std::nullopt;
+        const auto tofPlatoY = result.value();
+        const auto pointofPlatoY = curvePlatoY.getPoint(tofPlatoY);
+        return IntersecctionSolutionType{ 0.5 * (pointofPlatoY + pointofPlatoX), tofPlatoX, tofPlatoY };
       }
     }
-    else if (vertexOfPlatoX.x >= pointOfXmax.x)
-    {
-      if (point::isSame(vertexOfPlatoX, pointOfXmax))
-      {
-        return std::tuple{ 0.5 * (vertexOfPlatoX + pointOfXmax), tVertexPlatoX , tOfXmax };
-      }
-      else
-      {
-        return std::nullopt;
-      }
-    }
-    else
-    {
-      auto func = [&curvePlatoY, xo = vertexOfPlatoX.x](const double t) -> double
-      {
-        return curvePlatoY.getPoint(t).x - xo;
-      };
-      const auto tOnPlatoY = math::findUniqueFunctionRoot(tminOfPlatoy, tmaxOfPlatoy, func);
-      const auto pointOnPlatoY = curvePlatoY.getPoint(tOnPlatoY);
-      if (point::isSame(vertexOfPlatoX, pointOnPlatoY))
-      {
-        return std::tuple{ 0.5 * (vertexOfPlatoX + pointOnPlatoY), tVertexPlatoX, tOnPlatoY };
-      }
-      else
-      {
-        std::nullopt;
-      }
-    }
-  };
-  // Применяем анализатор граничных точек кривой PlatoX
-  const auto result1 = marginalIntersectorOfPointWithPlatoY(tminOfPlatox);
-  if (result1) return result1;
-
-  const auto result2 = marginalIntersectorOfPointWithPlatoY(tmaxOfPlatox);
-  if (result2) return result2;
-
-  // рассматриваем граничные точки кривой PlatoY
-  auto marginalIntersectorOfPointWithPlatoX =
-    [
-      &curvePlatoY,
-      &curvePlatoX,
-      pointOfYmin,
-      tOfYmin,
-      tminOfPlatox,
-      pointOfYmax,
-      tOfYmax,
-      tmaxOfPlatox
-    ]
-  (const double tVertexPlatoY) -> std::optional<geom2d::IntersecctionSolutionType>
-  {
-    const auto vertexOfPlatoY = curvePlatoY.getPoint(tVertexPlatoY);
-    if (vertexOfPlatoY.y <= pointOfYmin.y)
-    {
-      if (point::isSame(vertexOfPlatoY, pointOfYmin))
-      {
-        return std::tuple{ 0.5 * (vertexOfPlatoY + pointOfYmin) , tOfYmin, tVertexPlatoY };
-      }
-      else
-      {
-        return std::nullopt;
-      }
-    }
-    else if (vertexOfPlatoY.y >= pointOfYmax.y)
-    {
-      if (point::isSame(vertexOfPlatoY, pointOfYmax))
-      {
-        return std::tuple{ 0.5 * (vertexOfPlatoY + pointOfYmax), tOfYmax, tVertexPlatoY };
-    }
-      else
-      {
-        return std::nullopt;
-      }
   }
-    else
+
+  // теперь проверяем концы кривой curvePlatoY
+  {
+    std::initializer_list<double> listoft{ tminOfPlatoy, tmaxOfPlatoy };
+    for (const auto tofPlatoY : listoft)
     {
-      auto func = [&curvePlatoX, yo = vertexOfPlatoY.y](const double t) -> double
+      using namespace geom2d::point_and_platox;
+      const auto pointofPlatoY = curvePlatoY.getPoint(tofPlatoY);
+      solver solv{ pointofPlatoY, tminOfPlatox , tmaxOfPlatox , curvePlatoX };
+      const auto result = solv.execute();
+      if (result)
       {
-        return curvePlatoX.getPoint(t).y - yo;
-      };
-      const auto tOnPlatoX = math::findUniqueFunctionRoot(tminOfPlatox, tmaxOfPlatox, func);
-      const auto pointOnPlatoX = curvePlatoX.getPoint(tOnPlatoX);
-      if (point::isSame(vertexOfPlatoY, pointOnPlatoX))
-      {
-        return std::tuple{ 0.5 * (vertexOfPlatoY + pointOnPlatoX), tOnPlatoX, tVertexPlatoY };
-      }
-      else
-      {
-        std::nullopt;
+        const auto tofPlatoX = result.value();
+        const auto pointofPlatoX = curvePlatoX.getPoint(tofPlatoX);
+        return IntersecctionSolutionType{ 0.5 * (pointofPlatoY + pointofPlatoX), tofPlatoX, tofPlatoY };
       }
     }
-  };
-  // Применяем анализатор граничных точек кривой PlatoY
-  const auto result3 = marginalIntersectorOfPointWithPlatoX(tminOfPlatoy);
-  if (result3) return result3;
-
-  const auto result4 = marginalIntersectorOfPointWithPlatoY(tmaxOfPlatoy);
-  if (result4) return result4;
-
-  // далее проверяем полноценное пересечение
-  
-  
-  return std::nullopt;
+  }
+  // далее проверяем полноценное пересечение или его отсутствие (граничные случаи утилизированы выше)
+  return findUniqueIntersection(tminOfPlatox, tmaxOfPlatox, curvePlatoX, tminOfPlatoy, tmaxOfPlatoy, curvePlatoY);
 }
 
 //-------------------------------------------------------------------------------------------------

@@ -25,7 +25,13 @@ namespace geom2d
 
     // максимальное значение параметра t
     virtual double parameterMax () const = 0;
-      
+
+    // получаем значение t при котором x принимает значение theX на участке монотонности
+    const double tofX(const double tmin, const double tmax, const double theX) const;
+
+    // получаем значение t при котором y принимает значение theY на участке монотонности
+    const double tofY(const double tmin, const double tmax, const double theY) const;
+
   };
 
 }

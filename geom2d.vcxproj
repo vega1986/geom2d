@@ -139,6 +139,8 @@
     <ClCompile Include="point.cpp" />
     <ClCompile Include="segment.cpp" />
     <ClCompile Include="segmentCurve.cpp" />
+    <ClCompile Include="solver_point_and_platox.cpp" />
+    <ClCompile Include="solver_point_and_platoy.cpp" />
     <ClCompile Include="StatOfCurvePiece.cpp" />
     <ClCompile Include="vector.cpp" />
   </ItemGroup>
@@ -155,6 +157,8 @@
     <ClInclude Include="math.h" />
     <ClInclude Include="point.h" />
     <ClInclude Include="segmentCurve.h" />
+    <ClInclude Include="solver_point_and_platox.h" />
+    <ClInclude Include="solver_point_and_platoy.h" />
     <ClInclude Include="solver_unique_intersection.h" />
     <ClInclude Include="StatOfCurvePiece.h" />
     <ClInclude Include="vector.h" />
