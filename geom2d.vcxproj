@@ -139,6 +139,7 @@
     <ClCompile Include="point.cpp" />
     <ClCompile Include="segment.cpp" />
     <ClCompile Include="segmentCurve.cpp" />
+    <ClCompile Include="solver_points_and_alongaxis.cpp" />
     <ClCompile Include="solver_point_and_alongaxis.cpp" />
     <ClCompile Include="solver_point_and_point.cpp" />
     <ClCompile Include="StatOfCurvePiece.cpp" />
@@ -157,6 +158,7 @@
     <ClInclude Include="math.h" />
     <ClInclude Include="point.h" />
     <ClInclude Include="segmentCurve.h" />
+    <ClInclude Include="solver_points_and_alongaxis.h" />
     <ClInclude Include="solver_point_and_alongaxis.h" />
     <ClInclude Include="solver_point_and_point.h" />
     <ClInclude Include="solver_unique_intersection.h" />

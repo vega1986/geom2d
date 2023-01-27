@@ -71,26 +71,6 @@ namespace geom2d
     //                  //
     //////////////////////
 
-    // анализируем пересечение кривых, когда первая - точка, а вторая - плато по x (x ~ const)
-    // но функция может применяться даже если x - не константа, главное, чтоб по y кривая была
-    // не константа
-    static std::optional<double>
-      performPointVSAnyAlongY(
-        const point pnt,
-        const double tmin,
-        const double tmax,
-        const baseCurve& curve);
-
-    // анализируем пересечение кривых, когда первая - точка, а вторая - плато по y (y ~ const)
-    // но функция может применяться даже если y - не константа, главное, чтоб по x кривая была
-    // не константа
-    static std::optional<double>
-      performPointVSAnyAlongX(
-        const point pnt,
-        const double tmin,
-        const double tmax,
-        const baseCurve& curve);
-
     // Исследуем решение, если первая кривая - точка,
     // а вторая 'X = const'
     static
@@ -219,6 +199,58 @@ namespace geom2d
         const double tothmin,
         const double tothmax,
         const baseCurve& otherCurve
+      );
+
+    // Исследуем решение, если первая кривая - PlatoX, вторая - Any
+    static
+      std::optional<geom2d::IntersecctionSolutionType>
+      execPlatoXAndAny
+      (
+        const double tminOfPlatox,
+        const double tmaxOfPlatox,
+        const baseCurve& curvePlatoX,
+        const double tminOfAny,
+        const double tmaxOfAny,
+        const baseCurve& curveAny
+      );
+
+    // Исследуем решение, если первая кривая - PlatoY, вторая - Any
+    static
+      std::optional<geom2d::IntersecctionSolutionType>
+      execPlatoYAndAny
+      (
+        const double tminOfPlatoy,
+        const double tmaxOfPlatoy,
+        const baseCurve& curvePlatoY,
+        const double tminOfAny,
+        const double tmaxOfAny,
+        const baseCurve& curveAny
+      );
+
+    // Исследуем решение, если первая кривая - Normal, вторая - Screen
+    static
+      std::optional<geom2d::IntersecctionSolutionType>
+      execNormalAndScreen
+      (
+        const double tminOfNormal,
+        const double tmaxOfNormal,
+        const baseCurve& curveNormal,
+        const double tminOfScreen,
+        const double tmaxOfScreen,
+        const baseCurve& curveScreen
+      );
+
+    // Исследуем решение, если первая кривая - Normal, вторая - Normal
+    static
+      std::vector<geom2d::IntersecctionSolutionType>
+      execNormalAndNormal
+      (
+        const double tmin1,
+        const double tmax1,
+        const baseCurve& curve1,
+        const double tmin2,
+        const double tmax2,
+        const baseCurve& curve2
       );
 
   private:
