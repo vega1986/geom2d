@@ -10,6 +10,7 @@
 #include "solver_point_and_alongaxis.h"
 #include "solver_points_and_alongaxis.h"
 #include "solver_point_and_point.h"
+#include "solver_normal_and_normal_along_x.h"
 
 #include <vector>
 #include <array>
@@ -1394,150 +1395,10 @@ std::vector<geom2d::IntersecctionSolutionType>
     const auto commonRangeY = commonYmax - commonYmin;
     if (commonRangeX > commonRangeY)
     {
-      auto pointOfLess1 = pointofCommonXmin1;
-      auto pointOfMore1 = pointofCommonXmax1;
+      using namespace geom2d::solver_normal_and_normal_along_x;
 
-      auto pointOfLess2 = pointofCommonXmin2;
-      auto pointOfMore2 = pointofCommonXmax2;
-
-      auto t1_min = std::min({ tofCommonXmin1, tofCommonXmax1 });
-      auto t1_max = std::max({ tofCommonXmin1, tofCommonXmax1 });
-
-      auto t2_min = std::min({ tofCommonXmin2, tofCommonXmax2 });
-      auto t2_max = std::max({ tofCommonXmin2, tofCommonXmax2 });
-
-      // along x
-      auto t1 = tofCommonXmin1;
-      auto t2 = tofCommonXmin2;
-
-      auto p1 = pointofCommonXmin1;
-      auto p2 = pointofCommonXmin2;
-
-
-
-      while (true)
-      {
-        if (p1.y > p2.y)
-        {
-          const auto hline = p1.y;
-          // определяем значение параметра на кривой 2, которому соответствует ордината hline
-          if (hline >= pointOfMore2.y)
-          {
-            // тут мы обязаны проверить, может быть при значении абсциссы pointOfMore2.x как раз наблюдается пересечение?
-            const auto vline = pointOfMore2.x;
-            if (vline >= pointOfMore1.x)
-            {
-              // здесь мы обязаны проверить, являются ли концевые точки обеих кривых их пересечением?
-              if (point::isSame(pointOfMore1, pointOfMore2))
-              {
-                result.push_back(IntersecctionSolutionType{ 0.5 * (pointOfMore1 + pointOfMore2), tofCommonXmax1, tofCommonXmax2 });
-              }
-            }
-            else
-            {
-              const auto theT1 = curve1.tofX(t1_min, t1_max, vline);
-              const auto thePoint1 = curve1.getPoint(theT1);
-
-              if (point::isSame(thePoint1, pointOfMore2))
-              {
-                result.push_back(IntersecctionSolutionType{0.5 * (thePoint1 + pointOfMore2), theT1, tofCommonXmax2 });
-              }
-            }
-            return result;
-          }
-          else
-          {
-            // в данной ветке приключения продолжаются
-            const auto theT2 = curve2.tofY(t2_min, t2_max, hline);
-            const auto thePoint2 = curve2.getPoint(theT2);
-
-            const auto vline = thePoint2.x;
-            if (vline >= pointOfMore1.x)
-            {
-              if (point::isSame(thePoint2, pointOfMore1))
-              {
-                result.push_back(IntersecctionSolutionType{ 0.5 * (pointOfMore1 + thePoint2), tofCommonXmax1, theT2 });
-              }
-              return result;
-            }
-            else
-            {
-              const auto theT1 = curve1.tofX(t1_min, t1_max, vline);
-              const auto thePoint1 = curve1.getPoint(theT1);
-
-              auto pp1 = thePoint1;
-              auto pp2 = thePoint2;
-
-              auto tt1 = theT1;
-              auto tt2 = theT2;
-
-              if (point::isSame(pp1, pp2))
-              {
-                result.push_back(IntersecctionSolutionType{0.5 * (pp1 + pp2), tt1, tt2});
-                // итак, мы нашли очередное решение, но теперь мы должны продолжить поиск следующих пересечений
-                // для этого мы должны сместиться вправо так, чтобы точки снова разошлись на достаточное расстояние,
-                // чтобы мы могли считать их не совпадающими
-
-                auto vline_shifted = vline + math::tolerance::tolPoint;
-                while (point::isSame(pp1, pp2))
-                {
-                  if ((pointOfMore1.x <= vline_shifted) or (pointOfMore2.x <= vline_shifted))
-                  {
-                    // закончилась одна из кривых, а точки так и не разошлись - значит самый момент сворачиваться
-                    return result;
-                  }
-                  else
-                  {
-                    const auto newT1 = curve1.tofX(t1_min, t1_max, vline_shifted);
-                    const auto newPoint1 = curve1.getPoint(newT1);
-
-                    const auto newT2 = curve2.tofX(t2_min, t2_max, vline_shifted);
-                    const auto newPoint2 = curve2.getPoint(newT2);
-
-                    tt1 = newT1;
-                    tt2 = newT2;
-
-                    pp1 = newPoint1;
-                    pp2 = newPoint2;
-
-                    vline_shifted += math::tolerance::tolPoint;
-                  }
-                }
-              }
-
-              // обновляем параметры цикла:
-              pointOfLess1 = pp1;
-              pointOfLess2 = pp2;
-
-              tofCommonXmin1 = tt1;
-              tofCommonXmin2 = tt2;
-
-              t1_min = std::min({ tofCommonXmin1, tofCommonXmax1 });
-              t1_max = std::max({ tofCommonXmin1, tofCommonXmax1 });
-
-              t2_min = std::min({ tofCommonXmin2, tofCommonXmax2 });
-              t2_max = std::max({ tofCommonXmin2, tofCommonXmax2 });
-
-              // along x
-              t1 = tofCommonXmin1;
-              t2 = tofCommonXmin2;
-
-              p1 = pointofCommonXmin1;
-              p2 = pointofCommonXmin2;
-            }
-          }
-        }
-        else if (false)
-        {
-
-        }
-        else
-        {
-
-        }
-      }
-
-
+      solver theSolver{ tofCommonXmin1, tofCommonXmax1, curve1, tofCommonXmin2, tofCommonXmax2, curve2 };
+      result = theSolver.execute();
     }
     else
     {
@@ -1547,4 +1408,47 @@ std::vector<geom2d::IntersecctionSolutionType>
   return result;
 }
 
+std::vector<geom2d::IntersecctionSolutionType>
+  geom2d::curveIntersector::traceTwoNormalsThroughXaxis
+  (
+    const double tofmin1,
+    const double tofmax1,
+    const baseCurve& curve1,
+    const double tofmin2,
+    const double tofmax2,
+    const baseCurve& curve2
+  )
+{
+  // в данной функции ОДЗ по X для двух кривых совпадает
+  const auto pointOfLess1 = curve1.getPoint(tofmin1);
+  const auto pointOfMore1 = curve1.getPoint(tofmax1);
+
+  const auto pointOfLess2 = curve2.getPoint(tofmin2);
+  const auto pointOfMore2 = curve2.getPoint(tofmax2);
+
+  auto p1 = pointOfLess1;
+  auto p2 = pointOfLess2;
+
+  auto t1 = tofmin1;
+  auto t2 = tofmin2;
+
+  while (true)
+  {
+    if (point::isSame(p1, p2))
+    {
+      // здесь мы добавляем решение в контейнер и смещаемся вправо на столько, чтобы точки не совпадали
+    }
+    else if (p2.y > p1.y)
+    {
+
+    }
+    else // p1.y > p2.y
+    {
+
+    }
+  }
+
+}
+
 //-----------------------------------------------------------------------------
+

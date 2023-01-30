@@ -60,6 +60,9 @@
     <ClCompile Include="solver_points_and_alongaxis.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="solver_normal_and_normal_along_x.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bezierCurve2d.h">
@@ -114,6 +117,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="solver_points_and_alongaxis.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="solver_normal_and_normal_along_x.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

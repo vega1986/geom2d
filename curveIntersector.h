@@ -253,6 +253,19 @@ namespace geom2d
         const baseCurve& curve2
       );
 
+    // Если длина пересечения ОДЗ двух Normal кривых больше по X чем по Y
+    static
+      std::vector<geom2d::IntersecctionSolutionType>
+      traceTwoNormalsThroughXaxis
+      (
+        const double tofmin1,
+        const double tofmax1,
+        const baseCurve& curve1,
+        const double tofmin2,
+        const double tofmax2,
+        const baseCurve& curve2
+      );
+
   private:
 
     const baseCurve & m_curve1;
