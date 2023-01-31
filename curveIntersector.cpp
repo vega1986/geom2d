@@ -1605,4 +1605,36 @@ std::vector<geom2d::IntersecctionSolutionType>
   return result;
 }
 
+void geom2d::curveIntersector::dumpIntersections(std::ostream& ost) const
+{
+  const auto n = solutionPoints.size();
+  if ((solutionParameterOnCurve1.size() != n) or (solutionParameterOnCurve2.size() != n))
+  {
+    throw std::logic_error("impossible situation in geom2d::curveIntersector::dumpIntersections");
+  }
+
+  ost << "intersection count: " << n << std::endl;
+  for (size_t j = 0; j < n; ++j)
+  {
+    const auto pnt = solutionPoints[j];
+    
+    const auto t1 = solutionParameterOnCurve1[j];
+    const auto t2 = solutionParameterOnCurve2[j];
+
+
+    ost << "point: {" << pnt.x << ", " << pnt.y << "}" << " | ";
+    ost << "t on curve No. 1: " << t1 << " | ";
+    ost << "t on curve No. 2: " << t2 << std::endl;
+
+    // verification
+    const auto p1 = m_curve1.getPoint(t1);
+    const auto p2 = m_curve2.getPoint(t2);
+
+    if (not point::isSame(p1, p2))
+    {
+      throw std::logic_error("intersection point of two curves is incorrect!");
+    }
+  }
+}
+
 //-----------------------------------------------------------------------------

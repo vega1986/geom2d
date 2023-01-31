@@ -7,6 +7,9 @@
 #include "math.h"
 #include "bezierCurve2d.h"
 #include "findFunctionRoots.h"
+#include "curveIntersector.h"
+#include "pointCurve.h"
+#include "segmentCurve.h"
 
 int main()
 {
@@ -76,7 +79,44 @@ int main()
   {
     std::cout << r << std::endl;
   }
+  std::cout << std::endl << "-------------------------------------------------------------------------------" << std::endl << std::endl;
+  std::cout << " * point - point" << std::endl;
+  {
+    std::cout << "# 1" << std::endl;
+    {
+      pointCurve point1{ point{0.0, 0.0} };
+      pointCurve point2{ point{1.0, 0.0} };
 
+      curveIntersector theIntersector{ point1, point2 };
+      theIntersector.perform();
+
+      theIntersector.dumpIntersections(std::cout);
+    }
+    std::cout << "# 2" << std::endl;
+    {
+      pointCurve point1{ point{1.0, 0.0} };
+      pointCurve point2{ point{1.0, 0.0} };
+
+      curveIntersector theIntersector{ point1, point2 };
+      theIntersector.perform();
+
+      theIntersector.dumpIntersections(std::cout);
+    }
+  }
+  // тестируем INTERSECTOR - точка отрезок
+  std::cout << std::endl << "point - segment" << std::endl;
+  {
+    std::cout << "# 1" << std::endl;
+    {
+      segmentCurve theSegment{ point{0.0, 0.0}, point{1.0, 0.0} };
+      pointCurve thePoint{ point{1.0, 1.0} };
+
+      curveIntersector theIntersector{ theSegment, thePoint};
+      theIntersector.perform();
+
+      theIntersector.dumpIntersections(std::cout);
+    }
+  }
   //char ch = 0;
   //std::cin >> ch;
   return 1;

@@ -20,6 +20,7 @@ geom2d::point geom2d::segmentCurve::getPoint(double t) const
   const double alpha = 1.0 - t;
   const double beta = t;
   const point result = (m_startPoint * alpha) + (m_finishPoint * beta);
+  return result;
 }
 
 geom2d::point geom2d::segmentCurve::getVelocity(double t) const

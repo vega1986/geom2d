@@ -7,6 +7,7 @@
 #include <set>
 #include <vector>
 #include <optional>
+#include <ostream>
 
 
 namespace geom2d
@@ -265,6 +266,10 @@ namespace geom2d
         const double tmax2,
         const baseCurve& curve2
       );
+
+  public:
+
+    void dumpIntersections(std::ostream& ost) const;
 
   private:
 
