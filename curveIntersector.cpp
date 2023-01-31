@@ -1396,14 +1396,17 @@ std::vector<geom2d::IntersecctionSolutionType>
     const auto commonRangeY = commonYmax - commonYmin;
     if (commonRangeX > commonRangeY)
     {
-      using namespace geom2d::solver_normal_and_normal_along_x;
+      using namespace geom2d::solver_normal_and_normal;
 
-      solver theSolver{ tofCommonXmin1, tofCommonXmax1, curve1, tofCommonXmin2, tofCommonXmax2, curve2 };
+      solver<DataGetterOfX> theSolver{ tofCommonXmin1, tofCommonXmax1, curve1, tofCommonXmin2, tofCommonXmax2, curve2 };
       result = theSolver.execute();
     }
     else
     {
+      using namespace geom2d::solver_normal_and_normal;
 
+      solver<DataGetterOfY> theSolver{ tofCommonXmin1, tofCommonXmax1, curve1, tofCommonXmin2, tofCommonXmax2, curve2 };
+      result = theSolver.execute();
     }
   }
   return result;

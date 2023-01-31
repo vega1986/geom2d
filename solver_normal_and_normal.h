@@ -28,6 +28,14 @@ namespace geom2d
       {
         std::vector<geom2d::IntersecctionSolutionType> result;
 
+        const auto tmin1 = std::min(tofmin1, tofmax1);
+        const auto tmax1 = std::max(tofmin1, tofmax1);
+        const dataGetter getter1{tmin1, tmax1, curve1};
+
+        const auto tmin2 = std::min(tofmin2, tofmax2);
+        const auto tmax2 = std::max(tofmin2, tofmax2);
+        const dataGetter getter2{ tmin2, tmax2, curve2 };
+
         auto t1 = tofmin1;
         auto p1 = curve1.getPoint(tofmin1);
         const auto pointOfMax1 = curve1.getPoint(tofmax1);
@@ -47,7 +55,7 @@ namespace geom2d
             // (в соответствии с точностью нахождения корня уравнения, которая в 10 раз меньше толеранса точки)
             result.push_back(IntersecctionSolutionType{ 0.5 * (p1 + p2), t1, t2 });
             if (shiftFacedWithEnd) break;
-            const auto theResultOfShift = shiftForDiverge(t1, tofmax1, curve1, t2, tofmax2, curve2);
+            const auto theResultOfShift = shiftForDiverge(t1, getter1, t2, getter2);
             if (not theResultOfShift) break;
 
             const auto [new_t1, new_t2] = theResultOfShift.value();
@@ -64,7 +72,7 @@ namespace geom2d
             {
               // 1 - lower curve
               // 2 - upper curve
-              const auto theResultOfShift = shiftForConverge(t2, tofmax2, curve2, t1, tofmax1, curve1);
+              const auto theResultOfShift = shiftForConverge(t2, getter2, t1, getter1);
               if (not theResultOfShift) break;
 
               auto [theT2, theT1, isLast] =
@@ -84,7 +92,7 @@ namespace geom2d
             {
               // 1 - upper curve
               // 2 - lower curve
-              const auto theResultOfShift = shiftForConverge(t1, tofmax1, curve1, t2, tofmax2, curve2);
+              const auto theResultOfShift = shiftForConverge(t1, getter1, t2, getter2);
               if (not theResultOfShift) break;
 
               auto [theT1, theT2, isLast] =
@@ -113,30 +121,20 @@ namespace geom2d
         std::optional<std::pair<double, double>>
         shiftForDiverge
         (
-          const double tofmin1,
-          const double tofmax1,
-          const baseCurve& curve1,
-          const double tofmin2,
-          const double tofmax2,
-          const baseCurve& curve2
+          const double tofLeft1,
+          const dataGetter& getter1,
+          const double tofLeft2,
+          const dataGetter& getter2
         )
       {
-        const auto tmin1 = std::min(tofmin1, tofmax1);
-        const auto tmax1 = std::max(tofmin1, tofmax1);
-        dataGetter getter1{ tmin1 , tmax1 , curve1 };
+        const auto pointMore1 = getter1.getPointOfMax(); // instead of curve1.getPoint(tofmax1);
+        const auto pointMore2 = getter2.getPointOfMax(); // instead of curve2.getPoint(tofmax2);
 
-        const auto tmin2 = std::min(tofmin2, tofmax2);
-        const auto tmax2 = std::max(tofmin2, tofmax2);
-        dataGetter getter2{ tmin2 , tmax2 , curve2 };
+        auto p1 = getter1.getPoint(tofLeft1);
+        auto p2 = getter2.getPoint(tofLeft2);
 
-        const auto pointMore1 = curve1.getPoint(tofmax1);
-        const auto pointMore2 = curve2.getPoint(tofmax2);
-
-        auto p1 = curve1.getPoint(tofmin1);
-        auto p2 = curve2.getPoint(tofmin2);
-
-        auto t1 = tofmin1;
-        auto t2 = tofmin2;
+        auto t1 = tofLeft1;
+        auto t2 = tofLeft2;
 
         auto theShift = math::tolerance::tolPoint;
         const auto initial_vline = std::max(dataGetter::abscissaOf(p1), dataGetter::abscissaOf(p2));
@@ -163,7 +161,7 @@ namespace geom2d
           }
           else
           {
-            t1 = tofmax1;
+            t1 = getter1.getTofMax(); // instead of tofmax1;
           }
           // update t2
           if (vline < dataGetter::abscissaOf(pointMore2))
@@ -173,11 +171,11 @@ namespace geom2d
           }
           else
           {
-            t2 = tofmax2;
+            t2 = getter2.getTofMax(); // instead of tofmax2;
           }
           // update p1 & p2
-          p1 = curve1.getPoint(t1);
-          p2 = curve2.getPoint(t2);
+          p1 = getter1.getPoint(t1);
+          p2 = getter2.getPoint(t2);
         }
       }
 
@@ -185,30 +183,23 @@ namespace geom2d
         std::optional<std::tuple<double, double, bool>>
         shiftForConverge
         (
-          const double tofminUpper,
-          const double tofmaxUpper,
-          const baseCurve& curveUpper,
-          const double tofminLower,
-          const double tofmaxLower,
-          const baseCurve& curveLower
+          const double tofLeftUpper,
+          const dataGetter& getterUpper,
+          const double tofLeftLower,
+          const dataGetter& getterLower
         )
       {
-        const auto tminUpper = std::min(tofminUpper, tofmaxUpper);
-        const auto tmaxUpper = std::max(tofminUpper, tofmaxUpper);
-        dataGetter getterUpper{ tminUpper, tmaxUpper, curveUpper };
+        const auto pointMoreUpper = getterUpper.getPointOfMax();
+        const auto pointMoreLower = getterLower.getPointOfMax();
 
-        const auto tminLower = std::min(tofminLower, tofmaxLower);
-        const auto tmaxLower = std::max(tofminLower, tofmaxLower);
-        dataGetter getterLower{tminLower, tmaxLower, curveLower};
+        const auto tofmaxUpper = getterUpper.getTofMax();
+        const auto tofmaxLower = getterLower.getTofMax();
 
-        const auto pointMoreUpper = curveUpper.getPoint(tofmaxUpper);
-        const auto pointMoreLower = curveLower.getPoint(tofmaxLower);
+        auto pu = getterUpper.getPoint(tofLeftUpper);
+        auto pl = getterLower.getPoint(tofLeftLower);
 
-        auto pu = curveUpper.getPoint(tofminUpper);
-        auto pl = curveLower.getPoint(tofminLower);
-
-        auto tu = tofminUpper;
-        auto tl = tofminLower;
+        auto tu = tofLeftUpper;
+        auto tl = tofLeftLower;
 
         while (true)
         {
@@ -227,9 +218,7 @@ namespace geom2d
               if (vline < abscissaOfMoreUpper)
               {
                 const auto tonUpper = getterUpper.getTofAbscissa(vline);
-                // instead of curveUpper.tofX(tminUpper, tmaxUpper, vline);
                 const auto ponUpper = getterUpper.getPoint(tonUpper);
-                // instead of curveUpper.getPoint(tonUpper);
                 if (point::isSame(ponUpper, pointMoreLower))
                 {
                   return std::tuple{ tonUpper, tofmaxLower , true };
@@ -242,9 +231,7 @@ namespace geom2d
               else if (vline > abscissaOfMoreUpper)
               {
                 const auto tonLower = getterLower.getTofAbscissa(abscissaOfMoreUpper);
-                // instead of curveLower.tofX(tminLower, tmaxLower, pointMoreUpper.x);
                 const auto ponLower = getterLower.getPoint(tonLower);
-                // instead of curveLower.getPoint(tonLower);
                 if (point::isSame(pointMoreUpper, ponLower))
                 {
                   return std::tuple{ tofmaxUpper, tonLower, true };
@@ -269,19 +256,14 @@ namespace geom2d
             else
             {
               const auto tonLower = getterLower.getTofOrdinate(hline);
-              // instead of curveLower.tofY(tminLower, tmaxLower, hline);
               const auto ponLower = getterLower.getPoint(tonLower);
-              // instead of curveLower.getPoint(tonLower);
 
               const auto vline = dataGetter::abscissaOf(ponLower);
-              // instead of ponLower.x;
               const auto abscissaOfMoreUpper = dataGetter::abscissaOf(pointMoreUpper);
               if (vline < abscissaOfMoreUpper)
               {
                 const auto tonUpper = getterUpper.getTofAbscissa(vline);
-                // instead of curveUpper.tofX(tminUpper, tmaxUpper, vline);
                 const auto ponUpper = getterUpper.getPoint(tonUpper);
-                // instead of curveUpper.getPoint(tonUpper);
 
                 pu = ponUpper;
                 pl = ponLower;
@@ -294,9 +276,7 @@ namespace geom2d
               else if (vline > abscissaOfMoreUpper)
               {
                 const auto tonLowerBack = getterLower.getTofAbscissa(abscissaOfMoreUpper);
-                // instead of curveLower.tofX(tminLower, tmaxLower, pointMoreUpper.x);
                 const auto ponLowerBack = getterLower.getPoint(tonLowerBack);
-                // instead of curveLower.getPoint(tonLowerBack);
 
                 if (point::isSame(pointMoreUpper, ponLowerBack))
                 {
