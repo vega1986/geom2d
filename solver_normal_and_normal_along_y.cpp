@@ -1,11 +1,11 @@
-#include "solver_normal_and_normal_along_x.h"
+#include "solver_normal_and_normal_along_y.h"
 
 #include <algorithm>
 
 //*********************************************************************************************************************
 
 std::vector<geom2d::IntersecctionSolutionType>
-  geom2d::solver_normal_and_normal_along_x::solver::execute() const
+geom2d::solver_normal_and_normal_along_y::solver::execute() const
 {
   std::vector<geom2d::IntersecctionSolutionType> result;
 
@@ -23,10 +23,10 @@ std::vector<geom2d::IntersecctionSolutionType>
   {
     if (point::isSame(p1, p2))
     {
-      // в этой ветке утилизирован случай, когда p1.y == p2.y
+      // в этой ветке утилизирован случай, когда p1.x == p2.x
       // так как если это так, то dist(p1, p2) <= 0.1 * tolerance точки
       // (в соответствии с точностью нахождения корня уравнения, которая в 10 раз меньше толеранса точки)
-      result.push_back(IntersecctionSolutionType{0.5 * (p1 + p2), t1, t2});
+      result.push_back(IntersecctionSolutionType{ 0.5 * (p1 + p2), t1, t2 });
       if (shiftFacedWithEnd) break;
       const auto theResultOfShift = shiftForDiverge(t1, tofmax1, curve1, t2, tofmax2, curve2);
       if (not theResultOfShift) break;
@@ -41,7 +41,7 @@ std::vector<geom2d::IntersecctionSolutionType>
     }
     else
     {
-      if (p2.y > p1.y)
+      if (p2.x > p1.x)
       {
         // 1 - lower curve
         // 2 - upper curve
@@ -50,7 +50,7 @@ std::vector<geom2d::IntersecctionSolutionType>
 
         auto [theT2, theT1, isLast] =
           theResultOfShift.value();
-        
+
         // update t1 & t2, p1 & p2
         t1 = theT1;
         t2 = theT2;
@@ -61,7 +61,7 @@ std::vector<geom2d::IntersecctionSolutionType>
         shiftFacedWithEnd = isLast;
         continue;
       }
-      else if (p1.y > p2.y)
+      else if (p1.x > p2.x)
       {
         // 1 - upper curve
         // 2 - lower curve
@@ -85,7 +85,7 @@ std::vector<geom2d::IntersecctionSolutionType>
       }
       else
       {
-        throw std::logic_error("impossible situation in function geom2d::solver_normal_and_normal_along_x::solver::execute");
+        throw std::logic_error("impossible situation in function geom2d::solver_normal_and_normal_along_y::solver::execute");
       }
     }
   }
@@ -95,15 +95,15 @@ std::vector<geom2d::IntersecctionSolutionType>
 //*********************************************************************************************************************
 
 std::optional<std::pair<double, double>>
-  geom2d::solver_normal_and_normal_along_x::solver::shiftForDiverge
-  (
-    const double tofmin1,
-    const double tofmax1,
-    const baseCurve& curve1,
-    const double tofmin2,
-    const double tofmax2,
-    const baseCurve& curve2
-  )
+geom2d::solver_normal_and_normal_along_y::solver::shiftForDiverge
+(
+  const double tofmin1,
+  const double tofmax1,
+  const baseCurve& curve1,
+  const double tofmin2,
+  const double tofmax2,
+  const baseCurve& curve2
+)
 {
   const auto tmin1 = std::min(tofmin1, tofmax1);
   const auto tmax1 = std::max(tofmin1, tofmax1);
@@ -121,7 +121,7 @@ std::optional<std::pair<double, double>>
   auto t2 = tofmin2;
 
   auto theShift = math::tolerance::tolPoint;
-  const auto initial_vline = std::max(p1.x, p2.x);
+  const auto initial_vline = std::max(p1.y, p2.y);
 
   while (true)
   {
@@ -131,15 +131,15 @@ std::optional<std::pair<double, double>>
     }
     const double vline = initial_vline + theShift;
     theShift *= 2;
-    if ((vline > pointMore1.x) or (vline > pointMore2.x))
+    if ((vline > pointMore1.y) or (vline > pointMore2.y))
     {
       return std::nullopt;
     }
-    if (vline < pointMore1.x) t1 = curve1.tofX(tmin1, tmax1, vline);
-    else                      t1 = tofmax1;
+    if (vline < pointMore1.y) t1 = curve1.tofY(tmin1, tmax1, vline);
+    else                       t1 = tofmax1;
 
-    if (vline < pointMore2.x) t2 = curve2.tofX(tmin2, tmax2, vline);
-    else                      t2 = tofmax2;
+    if (vline < pointMore2.y) t2 = curve2.tofY(tmin2, tmax2, vline);
+    else                       t2 = tofmax2;
 
     // update p1 & p2
     p1 = curve1.getPoint(t1);
@@ -150,15 +150,15 @@ std::optional<std::pair<double, double>>
 //*********************************************************************************************************************
 
 std::optional<std::tuple<double, double, bool>>
-  geom2d::solver_normal_and_normal_along_x::solver::shiftForConverge
-  (
-    const double tofminUpper,
-    const double tofmaxUpper,
-    const baseCurve& curveUpper,
-    const double tofminLower,
-    const double tofmaxLower,
-    const baseCurve& curveLower
-  )
+geom2d::solver_normal_and_normal_along_y::solver::shiftForConverge
+(
+  const double tofminUpper,
+  const double tofmaxUpper,
+  const baseCurve& curveUpper,
+  const double tofminLower,
+  const double tofmaxLower,
+  const baseCurve& curveLower
+)
 {
   const auto tminUpper = std::min(tofminUpper, tofmaxUpper);
   const auto tmaxUpper = std::max(tofminUpper, tofmaxUpper);
@@ -183,14 +183,14 @@ std::optional<std::tuple<double, double, bool>>
     }
     else
     {
-      const auto hline = pu.y;
+      const auto hline = pu.x;
 
-      if (hline >= pointMoreLower.y)
+      if (hline >= pointMoreLower.x)
       {
-        const auto vline = pointMoreLower.x;
-        if (vline < pointMoreUpper.x)
+        const auto vline = pointMoreLower.y;
+        if (vline < pointMoreUpper.y)
         {
-          const auto tonUpper = curveUpper.tofX(tminUpper, tmaxUpper, vline);
+          const auto tonUpper = curveUpper.tofY(tminUpper, tmaxUpper, vline);
           const auto ponUpper = curveUpper.getPoint(tonUpper);
           if (point::isSame(ponUpper, pointMoreLower))
           {
@@ -201,9 +201,9 @@ std::optional<std::tuple<double, double, bool>>
             return std::nullopt;
           }
         }
-        else if (vline > pointMoreUpper.x)
+        else if (vline > pointMoreUpper.y)
         {
-          const auto tonLower = curveLower.tofX(tminLower, tmaxLower, pointMoreUpper.x);
+          const auto tonLower = curveLower.tofY(tminLower, tmaxLower, pointMoreUpper.y);
           const auto ponLower = curveLower.getPoint(tonLower);
           if (point::isSame(pointMoreUpper, ponLower))
           {
@@ -228,14 +228,14 @@ std::optional<std::tuple<double, double, bool>>
       }
       else
       {
-        const auto tonLower = curveLower.tofY(tminLower, tmaxLower, hline);
+        const auto tonLower = curveLower.tofX(tminLower, tmaxLower, hline);
         const auto ponLower = curveLower.getPoint(tonLower);
 
-        const auto vline = ponLower.x;
+        const auto vline = ponLower.y;
 
-        if (vline < pointMoreUpper.x)
+        if (vline < pointMoreUpper.y)
         {
-          const auto tonUpper = curveUpper.tofX(tminUpper, tmaxUpper, vline);
+          const auto tonUpper = curveUpper.tofY(tminUpper, tmaxUpper, vline);
           const auto ponUpper = curveUpper.getPoint(tonUpper);
 
           pu = ponUpper;
@@ -246,9 +246,9 @@ std::optional<std::tuple<double, double, bool>>
 
           continue;
         }
-        else if (vline > pointMoreUpper.x)
+        else if (vline > pointMoreUpper.y)
         {
-          const auto tonLowerBack = curveLower.tofX(tminLower, tmaxLower, pointMoreUpper.x);
+          const auto tonLowerBack = curveLower.tofY(tminLower, tmaxLower, pointMoreUpper.y);
           const auto ponLowerBack = curveLower.getPoint(tonLowerBack);
 
           if (point::isSame(pointMoreUpper, ponLowerBack))

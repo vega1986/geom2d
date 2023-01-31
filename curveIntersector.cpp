@@ -11,6 +11,7 @@
 #include "solver_points_and_alongaxis.h"
 #include "solver_point_and_point.h"
 #include "solver_normal_and_normal_along_x.h"
+#include "solver_normal_and_normal_along_y.h"
 
 #include <vector>
 #include <array>
