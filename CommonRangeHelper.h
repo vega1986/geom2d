@@ -35,7 +35,7 @@ namespace geom2d
   //         //
   /////////////
   template <class T>
-  concept CurveDataGetter = requires(const T a, const double t, const double x, const point & pnt)
+  concept CurveDataGetter = requires(const T a, const double t, const double theAny, const point & pnt)
   {
     { a.getPoint(t)     } -> std::convertible_to<geom2d::point>;
     { a.getCoord(t)     } -> std::convertible_to<double>;
@@ -50,7 +50,10 @@ namespace geom2d
     { a.getPointOfMax() } -> std::convertible_to<geom2d::point>;
     { a.getTofMax()     } -> std::convertible_to<double>;
 
-    { a.getTofCoord(x)  } -> std::convertible_to<double>;
+    { a.getTofCoord(theAny)  } -> std::convertible_to<double>; // the same as getTofAbscissa
+
+    { a.getTofAbscissa(theAny) } -> std::convertible_to<double>;
+    { a.getTofOrdinate(theAny) } -> std::convertible_to<double>;
 
     { T::abscissaOf(pnt) } -> std::convertible_to<double>;
     { T::ordinateOf(pnt) } -> std::convertible_to<double>;
@@ -90,6 +93,8 @@ namespace geom2d
 
     const double getTofCoord(const double theX) const { return curve.tofX(tmin, tmax, theX); }
 
+    const double getTofAbscissa(const double theX) const { return curve.tofX(tmin, tmax, theX); }
+    const double getTofOrdinate(const double theY) const { return curve.tofY(tmin, tmax, theY); }
 
     static inline const double abscissaOf(const point& pnt) { return pnt.x; }
     static inline const double ordinateOf(const point& pnt) { return pnt.y; }
@@ -135,6 +140,8 @@ namespace geom2d
 
     const double getTofCoord(const double theY) const { return curve.tofY(tmin, tmax, theY); }
 
+    const double getTofAbscissa(const double theY) const { return curve.tofY(tmin, tmax, theY); }
+    const double getTofOrdinate(const double theX) const { return curve.tofX(tmin, tmax, theX); }
 
     static inline const double abscissaOf(const point& pnt) { return pnt.y; }
     static inline const double ordinateOf(const point& pnt) { return pnt.x; }
