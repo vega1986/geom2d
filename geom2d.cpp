@@ -77,7 +77,7 @@ int main()
     std::cout << r << std::endl;
   }
 
-  char ch = 0;
-  std::cin >> ch;
+  //char ch = 0;
+  //std::cin >> ch;
   return 1;
 }

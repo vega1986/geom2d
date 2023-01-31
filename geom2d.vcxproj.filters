@@ -66,6 +66,9 @@
     <ClCompile Include="solver_screen_and_screen.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="pointCurve.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bezierCurve2d.h">
@@ -126,6 +129,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="solver_screen_and_screen.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="pointCurve.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

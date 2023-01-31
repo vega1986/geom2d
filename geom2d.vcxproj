@@ -137,6 +137,7 @@
     <ClCompile Include="geom2d.cpp" />
     <ClCompile Include="math.cpp" />
     <ClCompile Include="point.cpp" />
+    <ClCompile Include="pointCurve.cpp" />
     <ClCompile Include="segment.cpp" />
     <ClCompile Include="segmentCurve.cpp" />
     <ClCompile Include="solver_normal_and_normal.cpp" />
@@ -159,6 +160,7 @@
     <ClInclude Include="IntersecctionSolutionType.h" />
     <ClInclude Include="math.h" />
     <ClInclude Include="point.h" />
+    <ClInclude Include="pointCurve.h" />
     <ClInclude Include="segmentCurve.h" />
     <ClInclude Include="solver_normal_and_normal.h" />
     <ClInclude Include="solver_points_and_alongaxis.h" />
