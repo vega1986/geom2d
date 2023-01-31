@@ -11,6 +11,7 @@
 #include "solver_points_and_alongaxis.h"
 #include "solver_point_and_point.h"
 #include "solver_normal_and_normal.h"
+#include "solver_screen_and_screen.h"
 
 #include <vector>
 #include <array>
@@ -220,6 +221,21 @@ void geom2d::curveIntersector::perform(
     switch (classOfCurve2)
     {
     case curveClass::Screen:
+    {
+      // кривая 1 - Screen
+      // кривая 2 - Screen
+      const auto result =
+        execScreenAndScreen(tmin1, tmax1, m_curve1, tmin2, tmax2, m_curve2);
+      if (not result.empty())
+      {
+        for (const auto [intPoint, t1, t2] : result)
+        {
+          solutionPoints.push_back(intPoint);
+          solutionParameterOnCurve1.push_back(t1);
+          solutionParameterOnCurve2.push_back(t2);
+        }
+      }
+    }
     break;
     case curveClass::Normal:
     {
@@ -1421,7 +1437,7 @@ std::vector<geom2d::IntersecctionSolutionType>
     {
       using namespace geom2d::solver_normal_and_normal;
 
-      solver<DataGetterOfY> theSolver{ tofCommonXmin1, tofCommonXmax1, curve1, tofCommonXmin2, tofCommonXmax2, curve2 };
+      solver<DataGetterOfY> theSolver{ tofCommonYmin1, tofCommonYmax1, curve1, tofCommonYmin2, tofCommonYmax2, curve2 };
       result = theSolver.execute();
     }
   }
@@ -1439,7 +1455,154 @@ std::vector<geom2d::IntersecctionSolutionType>
     const baseCurve& curve2
   )
 {
-  return std::vector<geom2d::IntersecctionSolutionType>{};
+  std::vector<geom2d::IntersecctionSolutionType> result;
+  // начинаем с нижних точек обеих кривых и идём к точке пересечения методом ступенек
+  const auto P1 = curve1.getPoint(tmin1);
+  const auto Q1 = curve1.getPoint(tmax1);
+  StatOfCurvePiece scp1{ tmin1, P1, tmax1, Q1 };
+
+  const auto P2 = curve2.getPoint(tmin2);
+  const auto Q2 = curve2.getPoint(tmax2);
+  StatOfCurvePiece scp2{ tmin2, P2, tmax2, Q2 };
+
+  // сначала утилизируем тривиальные случаи
+  if (scp1.pointOfxmin().x >= scp2.pointOfxmax().x)
+  {
+    // проверяем эти точки на совпадение
+    const auto t1 = scp1.tOfxmin();
+    const auto p1 = scp1.pointOfxmin();
+
+    const auto t2 = scp2.tOfxmax();
+    const auto p2 = scp2.pointOfxmax();
+
+    if (point::isSame(p1, p2))
+    {
+      result.push_back(IntersecctionSolutionType{ 0.5 * (p1 + p2), t1, t2 });
+    }
+    return result;
+  }
+  else if (scp2.pointOfxmin().x >= scp1.pointOfxmax().x)
+  {
+    // проверяем эти точки на совпадение
+    const auto t1 = scp1.tOfxmax();
+    const auto p1 = scp1.pointOfxmax();
+
+    const auto t2 = scp2.tOfxmin();
+    const auto p2 = scp2.pointOfxmin();
+
+    if (point::isSame(p1, p2))
+    {
+      result.push_back(IntersecctionSolutionType{ 0.5 * (p1 + p2), t1, t2 });
+    }
+    return result;
+  }
+  else if (scp1.pointOfymin().y >= scp2.pointOfymax().y)
+  {
+    const auto t1 = scp1.tOfymin();
+    const auto p1 = scp1.pointOfymin();
+
+    const auto t2 = scp2.tOfymax();
+    const auto p2 = scp2.pointOfymax();
+
+    if (point::isSame(p1, p2))
+    {
+      result.push_back(IntersecctionSolutionType{ 0.5 * (p1 + p2), t1, t2 });
+    }
+    return result;
+  }
+  else if (scp2.pointOfymin().y >= scp1.pointOfymax().y)
+  {
+    const auto t1 = scp1.tOfymax();
+    const auto p1 = scp1.pointOfymax();
+
+    const auto t2 = scp2.tOfymin();
+    const auto p2 = scp2.pointOfymin();
+
+    if (point::isSame(p1, p2))
+    {
+      result.push_back(IntersecctionSolutionType{ 0.5 * (p1 + p2), t1, t2 });
+    }
+    return result;
+  }
+  else
+  {
+    // если мы пришли сюда, значит есть пересечение ОДЗ двух кривых как по X, так и по Y
+    // находим общее ОДЗ по оси X
+    DataGetterOfX getter1alongx{ tmin1, tmax1, curve1 };
+    DataGetterOfX getter2alongx{ tmin2, tmax2, curve2 };
+
+    ///////////
+    //       //
+    // MIN X //
+    //       //
+    ///////////
+    auto [
+      commonXmin,
+      tofCommonXmin1,
+      pointofCommonXmin1,
+      tofCommonXmin2,
+      pointofCommonXmin2
+    ] = CommonRangeHelper::ofLowest(getter1alongx, getter2alongx);
+    ///////////
+    //       //
+    // MAX X //
+    //       //
+    ///////////
+    auto [
+      commonXmax,
+      tofCommonXmax1,
+      pointofCommonXmax1,
+      tofCommonXmax2,
+      pointofCommonXmax2
+    ] = CommonRangeHelper::ofHighest(getter1alongx, getter2alongx);
+    
+    const auto commonRangeX = commonXmax - commonXmin;
+    // находим общее ОДЗ по оси Y
+    DataGetterOfY getter1alongy{ tmin1, tmax1, curve1 };
+    DataGetterOfY getter2alongy{ tmin2, tmax2, curve2 };
+
+    ///////////
+    //       //
+    // MIN Y //
+    //       //
+    ///////////
+    auto [
+      commonYmin,
+      tofCommonYmin1,
+      pointofCommonYmin1,
+      tofCommonYmin2,
+      pointofCommonYmin2
+    ] = CommonRangeHelper::ofLowest(getter1alongy, getter2alongy);
+    ///////////
+    //       //
+    // MAX Y //
+    //       //
+    ///////////
+    auto [
+      commonYmax,
+      tofCommonYmax1,
+      pointofCommonYmax1,
+      tofCommonYmax2,
+      pointofCommonYmax2
+    ] = CommonRangeHelper::ofHighest(getter1alongy, getter2alongy);
+
+    const auto commonRangeY = commonYmax - commonYmin;
+    if (commonRangeX > commonRangeY)
+    {
+      using namespace geom2d::solver_screen_and_screen;
+
+      solver<DataGetterOfX> theSolver{ tofCommonXmin1, tofCommonXmax1, curve1, tofCommonXmin2, tofCommonXmax2, curve2 };
+      result = theSolver.execute();
+    }
+    else
+    {
+      using namespace geom2d::solver_screen_and_screen;
+
+      solver<DataGetterOfY> theSolver{ tofCommonYmin1, tofCommonYmax1, curve1, tofCommonYmin2, tofCommonYmax2, curve2 };
+      result = theSolver.execute();
+    }
+  }
+  return result;
 }
 
 //-----------------------------------------------------------------------------
