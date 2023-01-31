@@ -240,7 +240,7 @@ namespace geom2d
         const baseCurve& curveScreen
       );
 
-    // Исследуем решение, если первая кривая - Normal, вторая - Normal
+    // Исследуем решение, если первая и вторая кривые - Normal
     static
       std::vector<geom2d::IntersecctionSolutionType>
       execNormalAndNormal
@@ -253,16 +253,16 @@ namespace geom2d
         const baseCurve& curve2
       );
 
-    // Если длина пересечения ОДЗ двух Normal кривых больше по X чем по Y
+    // Исследуем решение, если первая и вторая кривые - Screen
     static
       std::vector<geom2d::IntersecctionSolutionType>
-      traceTwoNormalsThroughXaxis
+      execScreenAndScreen
       (
-        const double tofmin1,
-        const double tofmax1,
+        const double tmin1,
+        const double tmax1,
         const baseCurve& curve1,
-        const double tofmin2,
-        const double tofmax2,
+        const double tmin2,
+        const double tmax2,
         const baseCurve& curve2
       );
 

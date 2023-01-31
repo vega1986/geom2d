@@ -10,7 +10,6 @@
 #include "solver_point_and_alongaxis.h"
 #include "solver_points_and_alongaxis.h"
 #include "solver_point_and_point.h"
-#include "solver_normal_and_normal_along_x.h"
 #include "solver_normal_and_normal.h"
 
 #include <vector>
@@ -306,6 +305,21 @@ void geom2d::curveIntersector::perform(
       }
       break;
       case curveClass::Normal:
+      {
+        // кривая 1 - Normal
+        // кривая 2 - Normal
+        const auto result =
+          execNormalAndNormal(tmin1, tmax1, m_curve1, tmin2, tmax2, m_curve2);
+        if (not result.empty())
+        {
+          for (const auto [intPoint, t1, t2] : result)
+          {
+            solutionPoints.push_back(intPoint);
+            solutionParameterOnCurve1.push_back(t1);
+            solutionParameterOnCurve2.push_back(t2);
+          }
+        }
+      }
       break;
       case curveClass::PlatoX:
       {
@@ -1252,6 +1266,8 @@ std::optional<geom2d::IntersecctionSolutionType>
   return std::nullopt;
 }
 
+//-----------------------------------------------------------------------------
+
 std::vector<geom2d::IntersecctionSolutionType>
   geom2d::curveIntersector::execNormalAndNormal
   (
@@ -1413,46 +1429,17 @@ std::vector<geom2d::IntersecctionSolutionType>
 }
 
 std::vector<geom2d::IntersecctionSolutionType>
-  geom2d::curveIntersector::traceTwoNormalsThroughXaxis
+  geom2d::curveIntersector::execScreenAndScreen
   (
-    const double tofmin1,
-    const double tofmax1,
+    const double tmin1,
+    const double tmax1,
     const baseCurve& curve1,
-    const double tofmin2,
-    const double tofmax2,
+    const double tmin2,
+    const double tmax2,
     const baseCurve& curve2
   )
 {
-  // в данной функции ОДЗ по X для двух кривых совпадает
-  const auto pointOfLess1 = curve1.getPoint(tofmin1);
-  const auto pointOfMore1 = curve1.getPoint(tofmax1);
-
-  const auto pointOfLess2 = curve2.getPoint(tofmin2);
-  const auto pointOfMore2 = curve2.getPoint(tofmax2);
-
-  auto p1 = pointOfLess1;
-  auto p2 = pointOfLess2;
-
-  auto t1 = tofmin1;
-  auto t2 = tofmin2;
-
-  while (true)
-  {
-    if (point::isSame(p1, p2))
-    {
-      // здесь мы добавляем решение в контейнер и смещаемся вправо на столько, чтобы точки не совпадали
-    }
-    else if (p2.y > p1.y)
-    {
-
-    }
-    else // p1.y > p2.y
-    {
-
-    }
-  }
-
+  return std::vector<geom2d::IntersecctionSolutionType>{};
 }
 
 //-----------------------------------------------------------------------------
-
