@@ -66,36 +66,36 @@ namespace geom2d
   //               //
   ///////////////////
   // класс типа CurveDataGetter - для получения параметров конца ОДЗ двух кривых по оси X
-  class THELIBGEOM2D_API DataGetterOfX
+  class DataGetterOfX
   {
   public:
-    DataGetterOfX(const double theTmin, const double theTmax, const baseCurve& theCurve)
+    THELIBGEOM2D_API DataGetterOfX(const double theTmin, const double theTmax, const baseCurve& theCurve)
       :
       tmin{ theTmin },
       tmax{ theTmax },
       curve{ theCurve },
       scp{theTmin, theCurve.getPoint(theTmin), theTmax, theCurve.getPoint(theTmax)}{}
 
-    const point getPoint(const double t) const { return curve.getPoint(t); }
-    const double getCoord(const double t) const { return curve.getPoint(t).x; }
-    const double getTmin() const { return tmin; }
-    const double getTmax() const { return tmax; }
+    THELIBGEOM2D_API const point getPoint(const double t) const { return curve.getPoint(t); }
+    THELIBGEOM2D_API const double getCoord(const double t) const { return curve.getPoint(t).x; }
+    THELIBGEOM2D_API const double getTmin() const { return tmin; }
+    THELIBGEOM2D_API const double getTmax() const { return tmax; }
 
     
-    const double getMinCoord() const { return scp.pointOfxmin().x; }
-    const point getPointOfMin() const { return scp.pointOfxmin(); }
-    const double getTofMin() const { return scp.tOfxmin(); }
+    THELIBGEOM2D_API const double getMinCoord() const { return scp.pointOfxmin().x; }
+    THELIBGEOM2D_API const point getPointOfMin() const { return scp.pointOfxmin(); }
+    THELIBGEOM2D_API const double getTofMin() const { return scp.tOfxmin(); }
 
 
-    const double getMaxCoord() const { return scp.pointOfxmax().x; }
-    const point getPointOfMax() const { return scp.pointOfxmax(); }
-    const double getTofMax() const { return scp.tOfxmax(); }
+    THELIBGEOM2D_API const double getMaxCoord() const { return scp.pointOfxmax().x; }
+    THELIBGEOM2D_API const point getPointOfMax() const { return scp.pointOfxmax(); }
+    THELIBGEOM2D_API const double getTofMax() const { return scp.tOfxmax(); }
 
 
-    const double getTofCoord(const double theX) const { return curve.tofX(tmin, tmax, theX); }
+    THELIBGEOM2D_API const double getTofCoord(const double theX) const { return curve.tofX(tmin, tmax, theX); }
 
-    const double getTofAbscissa(const double theX) const { return curve.tofX(tmin, tmax, theX); }
-    const double getTofOrdinate(const double theY) const { return curve.tofY(tmin, tmax, theY); }
+    THELIBGEOM2D_API const double getTofAbscissa(const double theX) const { return curve.tofX(tmin, tmax, theX); }
+    THELIBGEOM2D_API const double getTofOrdinate(const double theY) const { return curve.tofY(tmin, tmax, theY); }
 
     static inline const double abscissaOf(const point& pnt) { return pnt.x; }
     static inline const double ordinateOf(const point& pnt) { return pnt.y; }
@@ -113,36 +113,36 @@ namespace geom2d
   //               //
   ///////////////////
   // класс типа CurveDataGetter - для получения параметров конца ОДЗ двух кривых по оси Y
-  class THELIBGEOM2D_API DataGetterOfY
+  class DataGetterOfY
   {
   public:
-    DataGetterOfY(const double theTmin, const double theTmax, const baseCurve& theCurve)
+    THELIBGEOM2D_API DataGetterOfY(const double theTmin, const double theTmax, const baseCurve& theCurve)
       :
       tmin{ theTmin },
       tmax{ theTmax },
       curve{ theCurve },
       scp{ theTmin, theCurve.getPoint(theTmin), theTmax, theCurve.getPoint(theTmax) } {}
 
-    const point getPoint(const double t) const { return curve.getPoint(t); }
-    const double getCoord(const double t) const { return curve.getPoint(t).y; }
-    const double getTmin() const { return tmin; }
-    const double getTmax() const { return tmax; }
+    THELIBGEOM2D_API const point getPoint(const double t) const { return curve.getPoint(t); }
+    THELIBGEOM2D_API const double getCoord(const double t) const { return curve.getPoint(t).y; }
+    THELIBGEOM2D_API const double getTmin() const { return tmin; }
+    THELIBGEOM2D_API const double getTmax() const { return tmax; }
 
 
-    const double getMinCoord() const { return scp.pointOfymin().y; }
-    const point getPointOfMin() const { return scp.pointOfymin(); }
-    const double getTofMin() const { return scp.tOfymin(); }
+    THELIBGEOM2D_API const double getMinCoord() const { return scp.pointOfymin().y; }
+    THELIBGEOM2D_API const point getPointOfMin() const { return scp.pointOfymin(); }
+    THELIBGEOM2D_API const double getTofMin() const { return scp.tOfymin(); }
 
 
-    const double getMaxCoord() const { return scp.pointOfymax().y; }
-    const point getPointOfMax() const { return scp.pointOfymax(); }
-    const double getTofMax() const { return scp.tOfymax(); }
+    THELIBGEOM2D_API const double getMaxCoord() const { return scp.pointOfymax().y; }
+    THELIBGEOM2D_API const point getPointOfMax() const { return scp.pointOfymax(); }
+    THELIBGEOM2D_API const double getTofMax() const { return scp.tOfymax(); }
 
 
-    const double getTofCoord(const double theY) const { return curve.tofY(tmin, tmax, theY); }
+    THELIBGEOM2D_API const double getTofCoord(const double theY) const { return curve.tofY(tmin, tmax, theY); }
 
-    const double getTofAbscissa(const double theY) const { return curve.tofY(tmin, tmax, theY); }
-    const double getTofOrdinate(const double theX) const { return curve.tofX(tmin, tmax, theX); }
+    THELIBGEOM2D_API const double getTofAbscissa(const double theY) const { return curve.tofY(tmin, tmax, theY); }
+    THELIBGEOM2D_API const double getTofOrdinate(const double theX) const { return curve.tofX(tmin, tmax, theX); }
 
     static inline const double abscissaOf(const point& pnt) { return pnt.y; }
     static inline const double ordinateOf(const point& pnt) { return pnt.x; }

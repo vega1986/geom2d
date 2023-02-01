@@ -24,7 +24,7 @@ namespace geom2d
   };
 
   // класс предназначен для поиска точек пересечения двух кривых типа baseCurve,
-  class THELIBGEOM2D_API curveIntersector
+  class curveIntersector
   {
   private:
     enum class parseAxis : unsigned short int
@@ -33,12 +33,12 @@ namespace geom2d
       Y = 2  // along y
     };
   public:
-    curveIntersector (const baseCurve & curve1, const baseCurve & curve2)
+    THELIBGEOM2D_API curveIntersector (const baseCurve & curve1, const baseCurve & curve2)
       : m_curve1(curve1), m_curve2(curve2)
     {}
 
     // ищем точки пересечения
-    void perform();
+    THELIBGEOM2D_API void perform();
   private:
 
     // ищем точки пересечения на заданных участках монотонности обеих кривых
@@ -270,7 +270,7 @@ namespace geom2d
 
   public:
 
-    void dumpIntersections(std::ostream& ost) const;
+    THELIBGEOM2D_API void dumpIntersections(std::ostream& ost) const;
 
   private:
 

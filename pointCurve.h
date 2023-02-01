@@ -6,19 +6,19 @@
 namespace geom2d
 {
 
-  class THELIBGEOM2D_API pointCurve : public baseCurve
+  class pointCurve : public baseCurve
   {
   public:
-    pointCurve(const point thePoint);
+    THELIBGEOM2D_API pointCurve(const point thePoint);
 
-    virtual point getPoint(double) const;
+    THELIBGEOM2D_API virtual point getPoint(double) const;
 
-    virtual point getVelocity(double) const;
+    THELIBGEOM2D_API virtual point getVelocity(double) const;
 
-    virtual double parameterMin() const;
+    THELIBGEOM2D_API virtual double parameterMin() const;
 
-    virtual double parameterMax() const;
-
+    THELIBGEOM2D_API virtual double parameterMax() const;
+    
   private:
     point m_point;
   };

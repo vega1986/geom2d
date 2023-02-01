@@ -9,12 +9,13 @@
 namespace geom2d
 {
 
-  class THELIBGEOM2D_API bezierCurve : public baseCurve
+  class bezierCurve : public baseCurve
   {
   private:
 
     // вспомогательная функция,
     // вызываемая из конструктора
+    THELIBGEOM2D_API
     void initialize_collateral ();
 
   public:
@@ -32,21 +33,25 @@ namespace geom2d
 
     // получить точку на кривой для заданного параметра t
     // концептуальная формула: sum(j from 0 to n - 1) { beta(j) * t^j * (1 - t)^(n - 1 - j) }
+    THELIBGEOM2D_API
     virtual point getPoint (double t) const;
 
     // получить производные по t от точки на кривой для заданного параметра t
     // концептуальная формаула: sum(j from 0 to n - 1)
     // { j * beta(j) * t^(j - 1) * (1 - t)^(n - 1 - j) - 
     //  - (n - 1 - j) * beta(j) * t^j * (1 - t)^(n - 2 - j) }
+    THELIBGEOM2D_API
     virtual point getVelocity (double t) const;
 
     // минимальное значение параметра t
+    THELIBGEOM2D_API
     virtual double parameterMin() const
     {
       return 0.0;
     }
 
     // максимальное значение параметра t
+    THELIBGEOM2D_API
     virtual double parameterMax() const
     {
       return 1.0;
