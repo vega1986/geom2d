@@ -1,10 +1,13 @@
 #pragma once
+
+#include "libgeom2d/theLibGeom2d/theLibGeom2d.h"
+
 #include <cmath>
 
 namespace geom2d
 {
 
-  struct point
+  struct THELIBGEOM2D_API point
   {
     double x{ 0.0 };
     double y{ 0.0 };

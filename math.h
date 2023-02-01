@@ -1,26 +1,27 @@
 #pragma once
+#include "libgeom2d/theLibGeom2d/theLibGeom2d.h"
 
 namespace math
 {
-  size_t factorial(size_t n);
+  THELIBGEOM2D_API size_t factorial(size_t n);
 
   // число размещений из n по k
-  size_t place(size_t n, size_t k);
+  THELIBGEOM2D_API size_t place(size_t n, size_t k);
 
   // число сочетаний из n по k
-  size_t comb(size_t n, size_t k);
+  THELIBGEOM2D_API size_t comb(size_t n, size_t k);
 
   // оптимальное вычисление степени - примерно в 2 раза более эффективнее, чем std::pow
   // нет смысла применять
-  double power(double value, size_t p);
+  THELIBGEOM2D_API double power(double value, size_t p);
 
-  struct infinite
+  struct THELIBGEOM2D_API infinite
   {
     // бесконечное расстояние между точками
     static constexpr double distance = 1.0e+30;
   };
 
-  struct tolerance
+  struct THELIBGEOM2D_API tolerance
   {
     // толеранс точки
     static constexpr double tolPoint = 1.0e-9;

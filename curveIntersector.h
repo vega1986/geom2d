@@ -3,6 +3,7 @@
 #include "baseCurve.h"
 #include "point.h"
 #include "IntersecctionSolutionType.h"
+#include "libgeom2d/theLibGeom2d/theLibGeom2d.h"
 
 #include <set>
 #include <vector>
@@ -13,7 +14,7 @@
 namespace geom2d
 {
   // классифицируем поведение участка кривой на участке монотонности
-  enum class curveClass : unsigned short int
+  enum class THELIBGEOM2D_API curveClass : unsigned short int
   {
     Screen = 1, // (dx / dt > 0 && dy / dt < 0) || (dx / dt < 0 && dy / dt > 0)
     Normal = 2, // (dx / dt > 0 && dy / dt > 0) || (dx / dt < 0 && dy / dt < 0)
@@ -23,7 +24,7 @@ namespace geom2d
   };
 
   // класс предназначен для поиска точек пересечения двух кривых типа baseCurve,
-  class curveIntersector
+  class THELIBGEOM2D_API curveIntersector
   {
   private:
     enum class parseAxis : unsigned short int

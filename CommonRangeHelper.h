@@ -6,6 +6,7 @@
 #include "baseCurve.h"
 #include "StatOfCurvePiece.h"
 #include "findFunctionRoots.h"
+#include "libgeom2d/theLibGeom2d/theLibGeom2d.h"
 
 namespace geom2d
 {
@@ -65,7 +66,7 @@ namespace geom2d
   //               //
   ///////////////////
   // класс типа CurveDataGetter - для получения параметров конца ОДЗ двух кривых по оси X
-  class DataGetterOfX
+  class THELIBGEOM2D_API DataGetterOfX
   {
   public:
     DataGetterOfX(const double theTmin, const double theTmax, const baseCurve& theCurve)
@@ -112,7 +113,7 @@ namespace geom2d
   //               //
   ///////////////////
   // класс типа CurveDataGetter - для получения параметров конца ОДЗ двух кривых по оси Y
-  class DataGetterOfY
+  class THELIBGEOM2D_API DataGetterOfY
   {
   public:
     DataGetterOfY(const double theTmin, const double theTmax, const baseCurve& theCurve)

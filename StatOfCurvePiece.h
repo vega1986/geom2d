@@ -1,10 +1,11 @@
 #pragma once
 #include "point.h"
+#include "libgeom2d/theLibGeom2d/theLibGeom2d.h"
 
 namespace geom2d
 {
 
-  class StatOfCurvePiece
+  class THELIBGEOM2D_API StatOfCurvePiece
   {
   public:
     StatOfCurvePiece(const double tp, const point p, const double tq, const point q);

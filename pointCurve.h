@@ -1,12 +1,12 @@
 #pragma once
 #include "baseCurve.h"
-
 #include "point.h"
+#include "libgeom2d/theLibGeom2d/theLibGeom2d.h"
 
 namespace geom2d
 {
 
-  class pointCurve : public baseCurve
+  class THELIBGEOM2D_API pointCurve : public baseCurve
   {
   public:
     pointCurve(const point thePoint);

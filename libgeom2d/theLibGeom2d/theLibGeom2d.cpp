@@ -5,7 +5,7 @@
 #include "framework.h"
 #include "theLibGeom2d.h"
 
-
+#if 0
 // Пример экспортированной переменной
 THELIBGEOM2D_API int ntheLibGeom2d=0;
 
@@ -20,3 +20,4 @@ CtheLibGeom2d::CtheLibGeom2d()
 {
     return;
 }
+#endif

@@ -3,7 +3,7 @@
 
 //-----------------------------------------------------------------------------
 
-size_t math::factorial(size_t n)
+THELIBGEOM2D_API size_t math::factorial(size_t n)
 {
   size_t result = 1;
   if (n == 0)
@@ -20,7 +20,7 @@ size_t math::factorial(size_t n)
 
 //-----------------------------------------------------------------------------
 
-size_t math::place(size_t n, size_t k)
+THELIBGEOM2D_API size_t math::place(size_t n, size_t k)
 {
   if (k > n)
   {
@@ -40,7 +40,7 @@ size_t math::place(size_t n, size_t k)
 
 //-----------------------------------------------------------------------------
 
-size_t math::comb(size_t n, size_t k)
+THELIBGEOM2D_API size_t math::comb(size_t n, size_t k)
 {
   if (n == k)
   {
@@ -56,7 +56,7 @@ size_t math::comb(size_t n, size_t k)
 
 //-----------------------------------------------------------------------------
 
-double math::power(double value, size_t p)
+THELIBGEOM2D_API double math::power(double value, size_t p)
 {
   if (p == 0)
   {

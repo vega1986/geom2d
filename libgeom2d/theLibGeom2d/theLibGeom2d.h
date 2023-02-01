@@ -10,6 +10,7 @@
 #define THELIBGEOM2D_API __declspec(dllimport)
 #endif
 
+#if 0
 // Этот класс экспортирован из библиотеки DLL
 class THELIBGEOM2D_API CtheLibGeom2d {
 public:
@@ -20,3 +21,4 @@ public:
 extern THELIBGEOM2D_API int ntheLibGeom2d;
 
 THELIBGEOM2D_API int fntheLibGeom2d(void);
+#endif

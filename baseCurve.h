@@ -2,10 +2,12 @@
 #include "common.h"
 #include "point.h"
 
+#include "libgeom2d/theLibGeom2d/theLibGeom2d.h"
+
 namespace geom2d
 {
 
-  class baseCurve
+  class THELIBGEOM2D_API baseCurve
   {
 
   protected:

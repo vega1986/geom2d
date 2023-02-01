@@ -2,13 +2,14 @@
 
 #include "baseCurve.h"
 #include "point.h"
+#include "libgeom2d/theLibGeom2d/theLibGeom2d.h"
 
 #include <vector>
 
 namespace geom2d
 {
 
-  class bezierCurve : public baseCurve
+  class THELIBGEOM2D_API bezierCurve : public baseCurve
   {
   private:
 

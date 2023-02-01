@@ -3,11 +3,12 @@
 #include <stdexcept>
 
 #include "math.h"
+#include "libgeom2d/theLibGeom2d/theLibGeom2d.h"
 
 namespace geom2d
 {
   // Axis aligned boubding box
-  class aabb
+  class THELIBGEOM2D_API aabb
   {
     double m_xmin = 0.0;
     double m_xmax = 0.0;

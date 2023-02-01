@@ -2,12 +2,13 @@
 #include "baseCurve.h"
 #include "point.h"
 #include "vector.h"
+#include "libgeom2d/theLibGeom2d/theLibGeom2d.h"
 
 namespace geom2d
 {
   // представляет отрезок на плоскости
   // vec{r}(t) = vec{m_startPoint} + t * vec{m_finishPoint - m_startPoint}
-  class segmentCurve : public baseCurve
+  class THELIBGEOM2D_API segmentCurve : public baseCurve
   {
   public:
     segmentCurve(const point first, const point second);

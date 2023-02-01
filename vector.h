@@ -1,11 +1,12 @@
 #pragma once
 
 #include "point.h"
+#include "libgeom2d/theLibGeom2d/theLibGeom2d.h"
 
 namespace geom2d
 {
 
-  struct vector {
+  struct THELIBGEOM2D_API vector {
 
     vector() = default;
     vector(const double xx, const double yy);

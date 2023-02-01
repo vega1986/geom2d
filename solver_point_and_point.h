@@ -1,11 +1,12 @@
 #pragma once
 #include "point.h"
+#include "libgeom2d/theLibGeom2d/theLibGeom2d.h"
 
 namespace geom2d
 {
   namespace point_and_point
   {
-    class solver
+    class THELIBGEOM2D_API solver
     {
     public:
       solver(const point theP, const point theQ):p(theP), q(theQ) {}
