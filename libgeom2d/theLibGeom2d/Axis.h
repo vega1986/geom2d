@@ -1,5 +1,5 @@
 #pragma once
-#include "libgeom2d/theLibGeom2d/theLibGeom2d.h"
+#include "theLibGeom2d.h"
 
 namespace geom2d
 {

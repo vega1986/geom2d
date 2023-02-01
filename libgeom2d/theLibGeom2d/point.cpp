@@ -1,5 +1,5 @@
 #include "point.h"
-#include "math.h"
+#include "amath.h"
 
 double geom2d::point::distance(const point& p, const point& q)
 {

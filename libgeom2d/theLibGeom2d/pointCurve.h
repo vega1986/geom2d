@@ -1,7 +1,7 @@
 #pragma once
 #include "baseCurve.h"
 #include "point.h"
-#include "libgeom2d/theLibGeom2d/theLibGeom2d.h"
+#include "theLibGeom2d.h"
 
 namespace geom2d
 {
@@ -19,6 +19,8 @@ namespace geom2d
 
     THELIBGEOM2D_API virtual double parameterMax() const;
     
+    const point thePoint() const { return m_point; }
+
   private:
     point m_point;
   };

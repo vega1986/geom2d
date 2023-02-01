@@ -27,64 +27,64 @@
     <ClInclude Include="pch.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Axis.h">
+    <ClInclude Include="Axis.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\baseCurve.h">
+    <ClInclude Include="baseCurve.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\bezierCurve2d.h">
+    <ClInclude Include="bezierCurve2d.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\common.h">
+    <ClInclude Include="common.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\CommonRangeHelper.h">
+    <ClInclude Include="CommonRangeHelper.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\curveIntersector.h">
+    <ClInclude Include="curveIntersector.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\findFunctionRoots.h">
+    <ClInclude Include="findFunctionRoots.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\IntersecctionSolutionType.h">
+    <ClInclude Include="IntersecctionSolutionType.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\math.h">
+    <ClInclude Include="amath.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\point.h">
+    <ClInclude Include="point.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\pointCurve.h">
+    <ClInclude Include="pointCurve.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\segmentCurve.h">
+    <ClInclude Include="segmentCurve.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\solver_normal_and_normal.h">
+    <ClInclude Include="solver_normal_and_normal.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\solver_point_and_alongaxis.h">
+    <ClInclude Include="solver_point_and_alongaxis.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\solver_point_and_point.h">
+    <ClInclude Include="solver_point_and_point.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\solver_points_and_alongaxis.h">
+    <ClInclude Include="solver_points_and_alongaxis.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\solver_screen_and_screen.h">
+    <ClInclude Include="solver_screen_and_screen.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\solver_unique_intersection.h">
+    <ClInclude Include="solver_unique_intersection.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\StatOfCurvePiece.h">
+    <ClInclude Include="StatOfCurvePiece.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\vector.h">
+    <ClInclude Include="avector.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
   </ItemGroup>
@@ -95,49 +95,49 @@
     <ClCompile Include="dllmain.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\baseCurve.cpp">
+    <ClCompile Include="baseCurve.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\bezierCurve2d.cpp">
+    <ClCompile Include="bezierCurve2d.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\CommonRangeHelper.cpp">
+    <ClCompile Include="CommonRangeHelper.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\curveIntersector.cpp">
+    <ClCompile Include="curveIntersector.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\math.cpp">
+    <ClCompile Include="amath.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\point.cpp">
+    <ClCompile Include="point.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\pointCurve.cpp">
+    <ClCompile Include="pointCurve.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\segmentCurve.cpp">
+    <ClCompile Include="segmentCurve.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\solver_normal_and_normal.cpp">
+    <ClCompile Include="solver_normal_and_normal.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\solver_point_and_alongaxis.cpp">
+    <ClCompile Include="solver_point_and_alongaxis.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\solver_point_and_point.cpp">
+    <ClCompile Include="solver_point_and_point.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\solver_points_and_alongaxis.cpp">
+    <ClCompile Include="solver_points_and_alongaxis.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\solver_screen_and_screen.cpp">
+    <ClCompile Include="solver_screen_and_screen.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\StatOfCurvePiece.cpp">
+    <ClCompile Include="StatOfCurvePiece.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\vector.cpp">
+    <ClCompile Include="avector.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
   </ItemGroup>

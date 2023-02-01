@@ -2,8 +2,8 @@
 #include <cmath>
 #include <stdexcept>
 
-#include "math.h"
-#include "libgeom2d/theLibGeom2d/theLibGeom2d.h"
+#include "amath.h"
+#include "theLibGeom2d.h"
 
 namespace geom2d
 {

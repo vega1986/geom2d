@@ -1,6 +1,6 @@
 #include <cmath>
 #include "bezierCurve2d.h"
-#include "math.h"
+#include "amath.h"
 
 //-----------------------------------------------------------------------------
 

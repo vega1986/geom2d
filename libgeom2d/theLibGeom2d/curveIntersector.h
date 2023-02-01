@@ -3,7 +3,7 @@
 #include "baseCurve.h"
 #include "point.h"
 #include "IntersecctionSolutionType.h"
-#include "libgeom2d/theLibGeom2d/theLibGeom2d.h"
+#include "theLibGeom2d.h"
 
 #include <set>
 #include <vector>
@@ -271,6 +271,22 @@ namespace geom2d
   public:
 
     THELIBGEOM2D_API void dumpIntersections(std::ostream& ost) const;
+
+    std::vector<point> getSolutionPoints() const
+    {
+      return solutionPoints;
+    }
+
+    std::vector<double> getSolutionT1() const
+    {
+      return solutionParameterOnCurve1;
+    }
+
+    std::vector<double> getSolutionT2() const
+    {
+      return solutionParameterOnCurve2;
+    }
+
 
   private:
 

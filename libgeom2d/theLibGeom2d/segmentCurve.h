@@ -1,8 +1,8 @@
 #pragma once
 #include "baseCurve.h"
 #include "point.h"
-#include "vector.h"
-#include "libgeom2d/theLibGeom2d/theLibGeom2d.h"
+#include "avector.h"
+#include "theLibGeom2d.h"
 
 namespace geom2d
 {

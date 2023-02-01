@@ -2,7 +2,7 @@
 
 #include <set>
 
-#include "math.h"
+#include "amath.h"
 
 namespace math
 {

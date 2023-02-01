@@ -1,6 +1,6 @@
 #include "segmentCurve.h"
-#include "vector.h"
-#include "math.h"
+#include "avector.h"
+#include "amath.h"
 
 geom2d::segmentCurve::segmentCurve(const point first, const point second)
   :

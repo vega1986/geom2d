@@ -1,7 +1,7 @@
 #include <stdexcept>
 
-#include "vector.h"
-#include "math.h"
+#include "avector.h"
+#include "amath.h"
 
 geom2d::vector::vector(const double theX, const double theY)
 {

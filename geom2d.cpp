@@ -4,7 +4,7 @@
 #include <iostream>
 #include <chrono>
 
-#include "math.h"
+#include "amath.h"
 #include "bezierCurve2d.h"
 #include "findFunctionRoots.h"
 #include "curveIntersector.h"
@@ -80,29 +80,6 @@ int main()
     std::cout << r << std::endl;
   }
   std::cout << std::endl << "-------------------------------------------------------------------------------" << std::endl << std::endl;
-  std::cout << " * point - point" << std::endl;
-  {
-    std::cout << "# 1" << std::endl;
-    {
-      pointCurve point1{ point{0.0, 0.0} };
-      pointCurve point2{ point{1.0, 0.0} };
-
-      curveIntersector theIntersector{ point1, point2 };
-      theIntersector.perform();
-
-      theIntersector.dumpIntersections(std::cout);
-    }
-    std::cout << "# 2" << std::endl;
-    {
-      pointCurve point1{ point{1.0, 0.0} };
-      pointCurve point2{ point{1.0, 0.0} };
-
-      curveIntersector theIntersector{ point1, point2 };
-      theIntersector.perform();
-
-      theIntersector.dumpIntersections(std::cout);
-    }
-  }
   // тестируем INTERSECTOR - точка отрезок
   std::cout << std::endl << "point - segment" << std::endl;
   {

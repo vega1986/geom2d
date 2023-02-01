@@ -2,7 +2,7 @@
 
 #include "baseCurve.h"
 #include "point.h"
-#include "libgeom2d/theLibGeom2d/theLibGeom2d.h"
+#include "theLibGeom2d.h"
 
 #include <vector>
 
