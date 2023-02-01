@@ -126,47 +126,11 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>$(ProjectDir)x64\Release\theLibGeom2d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="baseCurve.cpp" />
-    <ClCompile Include="bezierCurve2d.cpp" />
-    <ClCompile Include="CommonRangeHelper.cpp" />
-    <ClCompile Include="curveIntersector.cpp" />
     <ClCompile Include="geom2d.cpp" />
-    <ClCompile Include="math.cpp" />
-    <ClCompile Include="point.cpp" />
-    <ClCompile Include="pointCurve.cpp" />
-    <ClCompile Include="segmentCurve.cpp" />
-    <ClCompile Include="solver_normal_and_normal.cpp" />
-    <ClCompile Include="solver_points_and_alongaxis.cpp" />
-    <ClCompile Include="solver_point_and_alongaxis.cpp" />
-    <ClCompile Include="solver_point_and_point.cpp" />
-    <ClCompile Include="solver_screen_and_screen.cpp" />
-    <ClCompile Include="StatOfCurvePiece.cpp" />
-    <ClCompile Include="vector.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="Axis.h" />
-    <ClInclude Include="baseCurve.h" />
-    <ClInclude Include="bezierCurve2d.h" />
-    <ClInclude Include="common.h" />
-    <ClInclude Include="CommonRangeHelper.h" />
-    <ClInclude Include="curveIntersector.h" />
-    <ClInclude Include="findFunctionRoots.h" />
-    <ClInclude Include="IntersecctionSolutionType.h" />
-    <ClInclude Include="math.h" />
-    <ClInclude Include="point.h" />
-    <ClInclude Include="pointCurve.h" />
-    <ClInclude Include="segmentCurve.h" />
-    <ClInclude Include="solver_normal_and_normal.h" />
-    <ClInclude Include="solver_points_and_alongaxis.h" />
-    <ClInclude Include="solver_point_and_alongaxis.h" />
-    <ClInclude Include="solver_point_and_point.h" />
-    <ClInclude Include="solver_screen_and_screen.h" />
-    <ClInclude Include="solver_unique_intersection.h" />
-    <ClInclude Include="StatOfCurvePiece.h" />
-    <ClInclude Include="vector.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
