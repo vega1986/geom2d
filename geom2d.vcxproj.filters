@@ -36,13 +36,7 @@
     <ClCompile Include="vector.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="segment.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="segmentCurve.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="AABB.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="StatOfCurvePiece.cpp">
@@ -96,9 +90,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="segmentCurve.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="AABB.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="IntersecctionSolutionType.h">
