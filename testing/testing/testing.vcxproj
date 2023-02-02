@@ -38,6 +38,9 @@
   <ItemGroup>
     <ClCompile Include="point_point.cpp" />
     <ClCompile Include="point_segment.cpp" />
+    <ClCompile Include="segment_segment_hor.cpp" />
+    <ClCompile Include="segment_segment_hor_any.cpp" />
+    <ClCompile Include="segment_segment_ver.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\libgeom2d\theLibGeom2d\theLibGeom2d.vcxproj">

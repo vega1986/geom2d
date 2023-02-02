@@ -147,8 +147,8 @@ void geom2d::curveIntersector::perform(
   const auto pBegOfCurve1 = m_curve1.getPoint(tmin1);
   const auto pEndOfCurve1 = m_curve1.getPoint(tmax1);
 
-  const auto pBegOfCurve2 = m_curve1.getPoint(tmin2);
-  const auto pEndOfCurve2 = m_curve1.getPoint(tmax2);
+  const auto pBegOfCurve2 = m_curve2.getPoint(tmin2);
+  const auto pEndOfCurve2 = m_curve2.getPoint(tmax2);
 
   // возвращаем класс кривой
   auto getCurveClass = [](const point pBegOfCurve, const point pEndOfCurve) -> curveClass
