@@ -37,6 +37,25 @@ void geom2d::vector::normalize()
   y /= len;
 }
 
+const geom2d::vector geom2d::vector::normalized() const
+{
+  vector result{ x, y };
+  result.normalize();
+  return result;
+}
+
+void geom2d::vector::reverse()
+{
+  x = -x;
+  y = -y;
+}
+
+const geom2d::vector geom2d::vector::reversed() const
+{
+  vector result{ -x, -y };
+  return result;
+}
+
 geom2d::vector geom2d::operator+(const vector p, const vector q)
 {
   return vector{ p.x + q.x, p.y + q.y };

@@ -4,6 +4,8 @@
 #include "avector.h"
 #include "theLibGeom2d.h"
 
+#include <optional>
+
 namespace geom2d
 {
   // представляет отрезок на плоскости
@@ -29,6 +31,20 @@ namespace geom2d
 
     // возвращает расстояние от отрезка до точки
     THELIBGEOM2D_API double distanceTo(const point pnt) const;
+
+    THELIBGEOM2D_API const point start() const;
+
+    THELIBGEOM2D_API const point finish() const;
+
+    THELIBGEOM2D_API static
+      std::optional<std::pair<double, double>>
+      intersectionOf(segmentCurve seg1, segmentCurve seg2);
+
+    THELIBGEOM2D_API static
+      std::tuple<double, double, double>
+      distanceBetween(segmentCurve seg1, segmentCurve seg2);
+
+    THELIBGEOM2D_API const double length() const;
 
   private:
     point m_startPoint;

@@ -44,7 +44,7 @@ TEST(Intersector, Point_Segment)
     {
       pointCurve pntCurve{ allPoints[j]};
       curveIntersector theIntersector{ segment , pntCurve };
-      theIntersector.perform();
+      theIntersector.fulfill();
 
       const auto allIntersections = theIntersector.getSolutionPoints();
       const auto allTofsegment = theIntersector.getSolutionT1();

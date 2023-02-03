@@ -43,7 +43,7 @@ TEST(Intersector, Segment_Segment_ver_any_01)
     for (const auto& otherSegment : curves)
     {
       curveIntersector theIntersector{ horSegment, otherSegment };
-      theIntersector.perform();
+      theIntersector.fulfill();
 
       const auto points = theIntersector.getSolutionPoints();
       const auto t1s = theIntersector.getSolutionT1();
@@ -98,7 +98,7 @@ TEST(Intersector, Segment_Segment_ver_any_02)
     for (const auto& otherSegment : curves)
     {
       curveIntersector theIntersector{ horSegment, otherSegment };
-      theIntersector.perform();
+      theIntersector.fulfill();
 
       const auto points = theIntersector.getSolutionPoints();
       const auto t1s = theIntersector.getSolutionT1();
@@ -153,7 +153,7 @@ TEST(Intersector, Segment_Segment_ver_any_03)
     for (const auto& otherSegment : curves)
     {
       curveIntersector theIntersector{ horSegment, otherSegment };
-      theIntersector.perform();
+      theIntersector.fulfill();
 
       const auto points = theIntersector.getSolutionPoints();
       const auto t1s = theIntersector.getSolutionT1();
@@ -208,7 +208,7 @@ TEST(Intersector, Segment_Segment_ver_any_04)
     for (const auto& otherSegment : curves)
     {
       curveIntersector theIntersector{ horSegment, otherSegment };
-      theIntersector.perform();
+      theIntersector.fulfill();
 
       const auto points = theIntersector.getSolutionPoints();
       const auto t1s = theIntersector.getSolutionT1();
@@ -263,7 +263,7 @@ TEST(Intersector, Segment_Segment_ver_any_05)
     for (const auto& otherSegment : curves)
     {
       curveIntersector theIntersector{ horSegment, otherSegment };
-      theIntersector.perform();
+      theIntersector.fulfill();
 
       const auto points = theIntersector.getSolutionPoints();
       const auto t1s = theIntersector.getSolutionT1();
@@ -318,7 +318,7 @@ TEST(Intersector, Segment_Segment_ver_any_06)
     for (const auto& otherSegment : curves)
     {
       curveIntersector theIntersector{ horSegment, otherSegment };
-      theIntersector.perform();
+      theIntersector.fulfill();
 
       const auto points = theIntersector.getSolutionPoints();
       const auto t1s = theIntersector.getSolutionT1();
@@ -373,7 +373,7 @@ TEST(Intersector, Segment_Segment_ver_any_07)
     for (const auto& otherSegment : curves)
     {
       curveIntersector theIntersector{ horSegment, otherSegment };
-      theIntersector.perform();
+      theIntersector.fulfill();
 
       const auto points = theIntersector.getSolutionPoints();
       const auto t1s = theIntersector.getSolutionT1();
@@ -428,7 +428,7 @@ TEST(Intersector, Segment_Segment_ver_any_08)
     for (const auto& otherSegment : curves)
     {
       curveIntersector theIntersector{ horSegment, otherSegment };
-      theIntersector.perform();
+      theIntersector.fulfill();
 
       const auto points = theIntersector.getSolutionPoints();
       const auto t1s = theIntersector.getSolutionT1();
@@ -483,7 +483,7 @@ TEST(Intersector, Segment_Segment_ver_any_09)
     for (const auto& otherSegment : curves)
     {
       curveIntersector theIntersector{ horSegment, otherSegment };
-      theIntersector.perform();
+      theIntersector.fulfill();
 
       const auto points = theIntersector.getSolutionPoints();
       const auto t1s = theIntersector.getSolutionT1();
@@ -540,7 +540,7 @@ TEST(Intersector, Segment_Segment_ver_any_10)
     for (const auto& otherSegment : curves)
     {
       curveIntersector theIntersector{ horSegment, otherSegment };
-      theIntersector.perform();
+      theIntersector.fulfill();
 
       const auto points = theIntersector.getSolutionPoints();
       const auto t1s = theIntersector.getSolutionT1();
@@ -589,7 +589,7 @@ TEST(Intersector, Segment_Segment_ver_any_11)
     for (const auto& otherSegment : curves)
     {
       curveIntersector theIntersector{ horSegment, otherSegment };
-      theIntersector.perform();
+      theIntersector.fulfill();
 
       const auto points = theIntersector.getSolutionPoints();
       const auto t1s = theIntersector.getSolutionT1();
@@ -638,7 +638,7 @@ TEST(Intersector, Segment_Segment_ver_any_12)
     for (const auto& otherSegment : curves)
     {
       curveIntersector theIntersector{ horSegment, otherSegment };
-      theIntersector.perform();
+      theIntersector.fulfill();
 
       const auto points = theIntersector.getSolutionPoints();
       const auto t1s = theIntersector.getSolutionT1();
@@ -687,7 +687,7 @@ TEST(Intersector, Segment_Segment_ver_any_13)
     for (const auto& otherSegment : curves)
     {
       curveIntersector theIntersector{ horSegment, otherSegment };
-      theIntersector.perform();
+      theIntersector.fulfill();
 
       const auto points = theIntersector.getSolutionPoints();
       const auto t1s = theIntersector.getSolutionT1();
@@ -736,7 +736,7 @@ TEST(Intersector, Segment_Segment_ver_any_14)
     for (const auto& otherSegment : curves)
     {
       curveIntersector theIntersector{ horSegment, otherSegment };
-      theIntersector.perform();
+      theIntersector.fulfill();
 
       const auto points = theIntersector.getSolutionPoints();
       const auto t1s = theIntersector.getSolutionT1();
@@ -785,7 +785,7 @@ TEST(Intersector, Segment_Segment_ver_any_15)
     for (const auto& otherSegment : curves)
     {
       curveIntersector theIntersector{ horSegment, otherSegment };
-      theIntersector.perform();
+      theIntersector.fulfill();
 
       const auto points = theIntersector.getSolutionPoints();
       const auto t1s = theIntersector.getSolutionT1();

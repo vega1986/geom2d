@@ -10,11 +10,84 @@ namespace math
   // Функция считается монотонной на этом отрезке
   // предусловие этой функции: func(a) * func(b) < 0
   // ищем с точностью до tol
-  template<class theFunc>
-  double findUniqueFunctionRoot(double a, double b, theFunc& func, const double funcTolerance = tolerance::tolPoint * 0.1)
+
+  struct needStopDummy
+  {
+    needStopDummy() = default;
+
+    bool operator()(const double t1, const double t2) const
+    {
+      return false;
+    }
+  };
+
+  template<class theFunc, class NeedStop>
+  double findUniqueFunctionRootUsingCriteria(double a, double b, theFunc& func, const NeedStop& ns)
   {
     static double func_a = func(a);
     static double func_b = func(b);
+    constexpr double funcTolerance = math::tolerance::tolPoint * 1.0e-2;
+    if (std::abs(func_a) <= funcTolerance)
+    {
+      return a;
+    }
+    if (std::abs(func_b) <= funcTolerance)
+    {
+      return b;
+    }
+    while (not ns(a, b))
+    {
+      const double funcLeft = func(a);
+      const double funcRight = func(b);
+      const double c = 0.5 * (a + b);
+      const double funcMiddle = func(c);
+
+      // серединка
+      if (std::abs(funcMiddle) <= funcTolerance)
+      {
+        return c;
+      }
+
+      if (funcMiddle > 0.0)
+      {
+        if (funcLeft < 0.0)
+        {
+          b = c;
+          continue;
+        }
+        else
+        {
+          a = c;
+          continue;
+        }
+      }
+      else if (funcMiddle < 0.0)
+      {
+        if (funcLeft > 0.0)
+        {
+          b = c;
+          continue;
+        }
+        else
+        {
+          a = c;
+          continue;
+        }
+      }
+      else
+      {
+        // в данном случае корень точно посередине отрезка
+        break;
+      }
+    }
+    return 0.5 * (a + b);
+  }
+
+  template<class theFunc>
+  double findUniqueFunctionRoot(double a, double b, theFunc& func, const double funcTolerance = tolerance::tolPoint * 0.1)
+  {
+    const double func_a = func(a);
+    const double func_b = func(b);
     if (std::abs(func_a) <= funcTolerance)
     {
       return a;

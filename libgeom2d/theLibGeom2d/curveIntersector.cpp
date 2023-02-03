@@ -16,6 +16,7 @@
 #include <vector>
 #include <array>
 #include <algorithm>
+#include <type_traits>
 
 namespace geom2d
 {
@@ -96,552 +97,606 @@ namespace geom2d
     return std::nullopt;
   }
 }
+
 //-----------------------------------------------------------------------------
 
-void geom2d::curveIntersector::perform()
+void geom2d::curveIntersector::fulfill()
 {
-  // Разбиваем кривую 1 на точки монотонности
-  const auto tmanifold1 = rootsOfCurveVelocity(m_curve1);
-  
-  // Тоже для кривой 2
-  const auto tmanifold2 = rootsOfCurveVelocity(m_curve2);
+  curveAnalizerBase::perform();
+}
 
-  // точки монотонности не включают начало и конец
-  // для каждой пары значений интервала монотонности и каждой кривой ищем пересечение,
-  // зная что кривые монотонны на выбранном участке
-  // tmanifold - отсортированный массив t
-  auto assembleVectorOft = [](const double tmin, const double tmax, const auto tmanifold)
+//-----------------------------------------------------------------------------
+
+void geom2d::curveIntersector::postProcessing()
+{
+  excludeDuplicatesFromSolution();
+}
+
+//-----------------------------------------------------------------------------
+
+void geom2d::curveIntersector::excludeDuplicatesFromSolution()
+{
+  auto& pnts = solutionPoints;
+  auto& t1s = solutionParameterOnCurve1;
+  auto& t2s = solutionParameterOnCurve2;
+
+  if (pnts.size() < 2) return;
+
+  std::vector<bool> forExclude;
+  forExclude.assign(pnts.size(), false);
+
+  auto need2exclude = [&pnts, &t1s, &t2s](const size_t j) -> bool
   {
-    std::vector<double> result;
-    result.push_back(tmin);
-    for (const auto t : tmanifold)
+    const point current{ pnts[j] };
+    for (size_t i = j + 1; i < pnts.size(); ++i)
     {
-      result.push_back(t);
+      if (point::isSame(current, pnts[i])) return true;
     }
-    result.push_back(tmax);
-    return result;
+    return false;
   };
-  const auto tman1 = assembleVectorOft(m_curve1.parameterMin(), m_curve1.parameterMax(), tmanifold1);
-  const auto tman2 = assembleVectorOft(m_curve2.parameterMin(), m_curve2.parameterMax(), tmanifold2);
-  for (size_t i = 0; i < tman1.size() - 1; ++i)
+
+  for (size_t k = 0; k < pnts.size() - 1; ++k)
   {
-    const double tmin1 = tman1[i];
-    const double tmax1 = tman1[i + 1];
-    for (size_t j = 0; j < tman2.size() - 1; ++j)
+    forExclude[k] = need2exclude(k);
+  }
+
+  std::remove_const_t<std::remove_reference_t<decltype(pnts)>> newPnts;
+  std::remove_const_t<std::remove_reference_t<decltype(t1s)>> newT1s;
+  std::remove_const_t<std::remove_reference_t<decltype(t2s)>> newT2s;
+
+  for (size_t k = 0; k < pnts.size(); ++k)
+  {
+    if (forExclude[k]) continue;
+
+    newPnts.push_back(pnts[k]);
+    newT1s.push_back(t1s[k]);
+    newT2s.push_back(t2s[k]);
+  }
+
+  pnts = std::move(newPnts);
+  t1s = std::move(newT1s);
+  t2s = std::move(newT2s);
+}
+
+//-----------------------------------------------------------------------------
+
+void
+  geom2d::curveIntersector::performScreen1Screen2
+  (
+    const double tmin1,
+    const double tmax1,
+    const double tmin2,
+    const double tmax2
+  )
+{
+  // кривая 1 - Screen
+  // кривая 2 - Screen
+  const auto result =
+    execScreenAndScreen(tmin1, tmax1, m_curve1, tmin2, tmax2, m_curve2);
+  if (not result.empty())
+  {
+    for (const auto [intPoint, t1, t2] : result)
     {
-      const double tmin2 = tman2[j];
-      const double tmax2 = tman2[j + 1];
-      perform(tmin1, tmax1, tmin2, tmax2);
+      solutionPoints.push_back(intPoint);
+      solutionParameterOnCurve1.push_back(t1);
+      solutionParameterOnCurve2.push_back(t2);
     }
   }
 }
 
 //-----------------------------------------------------------------------------
 
-void geom2d::curveIntersector::perform(
-  const double tmin1,
-  const double tmax1,
-  const double tmin2,
-  const double tmax2)
+void
+  geom2d::curveIntersector::performScreen1Normal2
+  (
+    const double tmin1,
+    const double tmax1,
+    const double tmin2,
+    const double tmax2
+  )
 {
-  const auto pBegOfCurve1 = m_curve1.getPoint(tmin1);
-  const auto pEndOfCurve1 = m_curve1.getPoint(tmax1);
-
-  const auto pBegOfCurve2 = m_curve2.getPoint(tmin2);
-  const auto pEndOfCurve2 = m_curve2.getPoint(tmax2);
-
-  // возвращаем класс кривой
-  auto getCurveClass = [](const point pBegOfCurve, const point pEndOfCurve) -> curveClass
+  // кривая 1 - Screen
+  // кривая 2 - Normal
+  const auto result =
+    execNormalAndScreen(tmin2, tmax2, m_curve2, tmin1, tmax1, m_curve1);
+  if (result)
   {
-    const auto [xbeg, ybeg] = pBegOfCurve;
-    const auto [xend, yend] = pEndOfCurve;
-    constexpr auto tol2d = math::tolerance::tolPoint;
-    //constexpr auto halfTol2d = tol2d / 2.0;
-
-    const bool xInc = (xend - xbeg) > tol2d;
-    const bool xDec = (xbeg - xend) > tol2d;
-
-    const bool yInc = (yend - ybeg) > tol2d;
-    const bool yDec = (ybeg - yend) > tol2d;
-
-    if (xInc)
-    {
-      if (yDec)
-      {
-        return curveClass::Screen;
-      }
-      else if (yInc)
-      {
-        return curveClass::Normal;
-      }
-      else
-      {
-        return curveClass::PlatoY;
-      }
-    }
-    else if (xDec)
-    {
-      if (yDec)
-      {
-        return curveClass::Normal;
-      }
-      else if (yInc)
-      {
-        return curveClass::Screen;
-      }
-      else
-      {
-        return curveClass::PlatoY;
-      }
-    }
-    else
-    {
-      if (yDec)
-      {
-        return curveClass::PlatoX;
-      }
-      else if (yInc)
-      {
-        return curveClass::PlatoX;
-      }
-      else
-      {
-        return curveClass::Point;
-      }
-    }
-  };
-
-  const auto classOfCurve1 = getCurveClass(pBegOfCurve1, pEndOfCurve1);
-  const auto classOfCurve2 = getCurveClass(pBegOfCurve2, pEndOfCurve2);
-
-  // решаем задачу для каждого возможного сочетания классов отдельно
-  switch (classOfCurve1)
-  {
-  case curveClass::Screen:
-    switch (classOfCurve2)
-    {
-    case curveClass::Screen:
-    {
-      // кривая 1 - Screen
-      // кривая 2 - Screen
-      const auto result =
-        execScreenAndScreen(tmin1, tmax1, m_curve1, tmin2, tmax2, m_curve2);
-      if (not result.empty())
-      {
-        for (const auto [intPoint, t1, t2] : result)
-        {
-          solutionPoints.push_back(intPoint);
-          solutionParameterOnCurve1.push_back(t1);
-          solutionParameterOnCurve2.push_back(t2);
-        }
-      }
-    }
-    break;
-    case curveClass::Normal:
-    {
-      // кривая 1 - Screen
-      // кривая 2 - Normal
-      const auto result =
-        execNormalAndScreen(tmin2, tmax2, m_curve2, tmin1, tmax1, m_curve1);
-      if (result)
-      {
-        const auto [intPoint, t2, t1] =
-          result.value();
-        solutionPoints.push_back(intPoint);
-        solutionParameterOnCurve1.push_back(t1);
-        solutionParameterOnCurve2.push_back(t2);
-      }
-    }
-    break;
-    case curveClass::PlatoX:
-    {
-      // первая кривая - Any (Screen)
-      // вторая кривая - PlatoX
-      const auto result =
-        execPlatoXAndAny(tmin2, tmax2, m_curve2, tmin1, tmax1, m_curve1);
-      if (result)
-      {
-        const auto [intPoint, t2, t1] =
-          result.value();
-        solutionPoints.push_back(intPoint);
-        solutionParameterOnCurve1.push_back(t1);
-        solutionParameterOnCurve2.push_back(t2);
-      }
-    }
-    break;
-    case curveClass::PlatoY:
-    {
-      // первая кривая - Any (Screen)
-      // вторая кривая - PlatoY
-      const auto result =
-        execPlatoYAndAny(tmin2, tmax2, m_curve2, tmin1, tmax1, m_curve1);
-      if (result)
-      {
-        const auto [intPoint, t2, t1] =
-          result.value();
-        solutionPoints.push_back(intPoint);
-        solutionParameterOnCurve1.push_back(t1);
-        solutionParameterOnCurve2.push_back(t2);
-      }
-    }
-    break;
-    case curveClass::Point:
-    {
-      const auto result =
-        execPointAndAny(tmin2, tmax2, m_curve2, tmin1, tmax1, m_curve1);
-      if (result)
-      {
-        const auto [intPoint, t2, t1] =
-          result.value();
-        solutionPoints.push_back(intPoint);
-        solutionParameterOnCurve1.push_back(t1);
-        solutionParameterOnCurve2.push_back(t2);
-      }
-    }
-    break;
+    const auto [intPoint, t2, t1] =
+      result.value();
+    solutionPoints.push_back(intPoint);
+    solutionParameterOnCurve1.push_back(t1);
+    solutionParameterOnCurve2.push_back(t2);
   }
-  break;
-  case curveClass::Normal:
-    switch (classOfCurve2)
-    {
-      case curveClass::Screen:
-      {
-        // кривая 1 - Normal
-        // кривая 2 - Screen
-        const auto result =
-          execNormalAndScreen(tmin1, tmax1, m_curve1, tmin2, tmax2, m_curve2);
-        if (result)
-        {
-          const auto [intPoint, t1, t2] =
-            result.value();
-          solutionPoints.push_back(intPoint);
-          solutionParameterOnCurve1.push_back(t1);
-          solutionParameterOnCurve2.push_back(t2);
-        }
-      }
-      break;
-      case curveClass::Normal:
-      {
-        // кривая 1 - Normal
+}
+
+//-----------------------------------------------------------------------------
+
+void
+  geom2d::curveIntersector::performScreen1PlatoX2
+  (
+    const double tmin1,
+    const double tmax1,
+    const double tmin2,
+    const double tmax2
+  )
+{
+  // первая кривая - Any (Screen)
+  // вторая кривая - PlatoX
+  const auto result =
+    execPlatoXAndAny(tmin2, tmax2, m_curve2, tmin1, tmax1, m_curve1);
+  if (result)
+  {
+    const auto [intPoint, t2, t1] =
+      result.value();
+    solutionPoints.push_back(intPoint);
+    solutionParameterOnCurve1.push_back(t1);
+    solutionParameterOnCurve2.push_back(t2);
+  }
+}
+
+//-----------------------------------------------------------------------------
+
+void
+  geom2d::curveIntersector::performScreen1PlatoY2
+  (
+    const double tmin1,
+    const double tmax1,
+    const double tmin2,
+    const double tmax2
+  )
+{
+  // первая кривая - Any (Screen)
+  // вторая кривая - PlatoY
+  const auto result =
+    execPlatoYAndAny(tmin2, tmax2, m_curve2, tmin1, tmax1, m_curve1);
+  if (result)
+  {
+    const auto [intPoint, t2, t1] =
+      result.value();
+    solutionPoints.push_back(intPoint);
+    solutionParameterOnCurve1.push_back(t1);
+    solutionParameterOnCurve2.push_back(t2);
+  }
+}
+
+//-----------------------------------------------------------------------------
+
+void
+  geom2d::curveIntersector::performScreen1Point2
+  (
+    const double tmin1,
+    const double tmax1,
+    const double tmin2,
+    const double tmax2
+  )
+{
+  const auto result =
+    execPointAndAny(tmin2, tmax2, m_curve2, tmin1, tmax1, m_curve1);
+  if (result)
+  {
+    const auto [intPoint, t2, t1] =
+      result.value();
+    solutionPoints.push_back(intPoint);
+    solutionParameterOnCurve1.push_back(t1);
+    solutionParameterOnCurve2.push_back(t2);
+  }
+}
+
+//-----------------------------------------------------------------------------
+
+void 
+  geom2d::curveIntersector::performNormal1Screen2
+  (
+    const double tmin1,
+    const double tmax1,
+    const double tmin2,
+    const double tmax2
+  )
+{
+  // кривая 1 - Normal
+  // кривая 2 - Screen
+  const auto result =
+    execNormalAndScreen(tmin1, tmax1, m_curve1, tmin2, tmax2, m_curve2);
+  if (result)
+  {
+    const auto [intPoint, t1, t2] =
+      result.value();
+    solutionPoints.push_back(intPoint);
+    solutionParameterOnCurve1.push_back(t1);
+    solutionParameterOnCurve2.push_back(t2);
+  }
+}
+
+//-----------------------------------------------------------------------------
+
+void
+  geom2d::curveIntersector::performNormal1Normal2
+  (
+    const double tmin1,
+    const double tmax1,
+    const double tmin2,
+    const double tmax2
+  )
+{
+  // кривая 1 - Normal
         // кривая 2 - Normal
-        const auto result =
-          execNormalAndNormal(tmin1, tmax1, m_curve1, tmin2, tmax2, m_curve2);
-        if (not result.empty())
-        {
-          for (const auto [intPoint, t1, t2] : result)
-          {
-            solutionPoints.push_back(intPoint);
-            solutionParameterOnCurve1.push_back(t1);
-            solutionParameterOnCurve2.push_back(t2);
-          }
-        }
-      }
-      break;
-      case curveClass::PlatoX:
-      {
-        // первая кривая - Any (Normal)
-        // вторая кривая - PlatoX
-        const auto result =
-          execPlatoXAndAny(tmin2, tmax2, m_curve2, tmin1, tmax1, m_curve1);
-        if (result)
-        {
-          const auto [intPoint, t2, t1] =
-            result.value();
-          solutionPoints.push_back(intPoint);
-          solutionParameterOnCurve1.push_back(t1);
-          solutionParameterOnCurve2.push_back(t2);
-        }
-      }
-      break;
-      case curveClass::PlatoY:
-      {
-        // первая кривая - Any (Normal)
-        // вторая кривая - PlatoY
-        const auto result =
-          execPlatoYAndAny(tmin2, tmax2, m_curve2, tmin1, tmax1, m_curve1);
-        if (result)
-        {
-          const auto [intPoint, t2, t1] =
-            result.value();
-          solutionPoints.push_back(intPoint);
-          solutionParameterOnCurve1.push_back(t1);
-          solutionParameterOnCurve2.push_back(t2);
-        }
-      }
-      break;
-      case curveClass::Point:
-      {
-        // кривая 1 - Normal
-        // кривая 2 - Point
-        const auto result =
-          execPointAndAny(tmin2, tmax2, m_curve2, tmin1, tmax1, m_curve1);
-        if (result)
-        {
-          const auto [intPoint, t2, t1] =
-            result.value();
-          solutionPoints.push_back(intPoint);
-          solutionParameterOnCurve1.push_back(t1);
-          solutionParameterOnCurve2.push_back(t2);
-        }
-      }
-      break;
-    }
-    break;
-  case curveClass::PlatoX:
-    switch (classOfCurve2)
+  const auto result =
+    execNormalAndNormal(tmin1, tmax1, m_curve1, tmin2, tmax2, m_curve2);
+  if (not result.empty())
+  {
+    for (const auto [intPoint, t1, t2] : result)
     {
-      case curveClass::Screen:
-      case curveClass::Normal:
-      {
-        // первая кривая - PlatoX
-        // вторая кривая - Any (Screen or Normal)
-        const auto result =
-          execPlatoXAndAny(tmin1, tmax1, m_curve1, tmin2, tmax2, m_curve2);
-        if (result)
-        {
-          const auto [intPoint, t1, t2] =
-            result.value();
-          solutionPoints.push_back(intPoint);
-          solutionParameterOnCurve1.push_back(t1);
-          solutionParameterOnCurve2.push_back(t2);
-        }
-      }
-      break;
-      case curveClass::PlatoX:
-      {
-        // обе кривые - PlatoX
-        const auto result =
-          execPlatoXAndPlatoX(tmin1, tmax1, m_curve1, tmin2, tmax2, m_curve2);
-        if (result)
-        {
-          const auto [intPoint, t1, t2] =
-            result.value();
-          solutionPoints.push_back(intPoint);
-          solutionParameterOnCurve1.push_back(t1);
-          solutionParameterOnCurve2.push_back(t2);
-        }
-      }
-      break;
-      case curveClass::PlatoY:
-      {
-        // первая кривая - PlatoX
-        // вторая кривая - PlatoY
-        const auto result =
-          execPlatoXAndPlatoY(tmin1, tmax1, m_curve1, tmin2, tmax2, m_curve2);
-        if (result)
-        {
-          const auto [intPoint, t1, t2] = result.value();
-          solutionPoints.push_back(intPoint);
-          solutionParameterOnCurve1.push_back(t1);
-          solutionParameterOnCurve2.push_back(t2);
-        }
-      }
-      break;
-      case curveClass::Point:
-      {
-        // кривая 1 - PlatoX
-        // кривая 2 - Point
-        const auto result =
-          execPointAndPlatoX(tmin2, tmax2, m_curve2, tmin1, tmax1, m_curve1);
-        if (result)
-        {
-          const auto [intPoint, t2, t1] =
-            result.value();
-          solutionPoints.push_back(intPoint);
-          solutionParameterOnCurve1.push_back(t1);
-          solutionParameterOnCurve2.push_back(t2);
-        }
-      }
-      break;
+      solutionPoints.push_back(intPoint);
+      solutionParameterOnCurve1.push_back(t1);
+      solutionParameterOnCurve2.push_back(t2);
     }
-    break;
-  case curveClass::PlatoY:
-    switch (classOfCurve2)
-    {
-      case curveClass::Screen:
-      case curveClass::Normal:
-      {
-        // первая кривая - PlatoY
-        // вторая кривая - Any (Screen or Normal)
-        const auto result =
-          execPlatoYAndAny(tmin1, tmax1, m_curve1, tmin2, tmax2, m_curve2);
-        if (result)
-        {
-          const auto [intPoint, t1, t2] =
-            result.value();
-          solutionPoints.push_back(intPoint);
-          solutionParameterOnCurve1.push_back(t1);
-          solutionParameterOnCurve2.push_back(t2);
-        }
-      }
-      break;
-      case curveClass::PlatoX:
-      {
-        // кривая 1 - PlatoY
-        // кривая 2 - PlatoX
-        const auto result =
-          execPlatoXAndPlatoY(tmin2, tmax2, m_curve2, tmin1, tmax1, m_curve1);
-        if (result)
-        {
-          const auto [intPoint, t2, t1] = result.value();
-          solutionPoints.push_back(intPoint);
-          solutionParameterOnCurve1.push_back(t1);
-          solutionParameterOnCurve2.push_back(t2);
-        }
-      }
-      break;
-      case curveClass::PlatoY:
-      {
-        // обе кривые - PlatoY
-        const auto result =
-          execPlatoYAndPlatoY(tmin1, tmax1, m_curve1, tmin2, tmax2, m_curve2);
-        if (result)
-        {
-          const auto [intPoint, t1, t2] =
-            result.value();
-          solutionPoints.push_back(intPoint);
-          solutionParameterOnCurve1.push_back(t1);
-          solutionParameterOnCurve2.push_back(t2);
-        }
-      }
-      break;
-      case curveClass::Point:
-      {
-        // первая кривая - PlatoY
-        // вторая кривая - Point
-        const auto result =
-          execPointAndPlatoY(tmin2, tmax2, m_curve2, tmin1, tmax1, m_curve1);
-        if (result)
-        {
-          const auto [intPoint, t2, t1] =
-            result.value();
-          solutionPoints.push_back(intPoint);
-          solutionParameterOnCurve1.push_back(t1);
-          solutionParameterOnCurve2.push_back(t2);
-        }
-      }
-      break;
-    }
-    break;
-  case curveClass::Point:
-    switch (classOfCurve2)
-    {
-      case curveClass::Screen:
-      case curveClass::Normal:
-      {
-        const auto result = execPointAndAny(tmin1, tmax1, m_curve1, tmin2, tmax2, m_curve2);
-        if (result)
-        {
-          const auto [intPoint, t1, t2] =
-            result.value();
-          solutionPoints.push_back(intPoint);
-          solutionParameterOnCurve1.push_back(t1);
-          solutionParameterOnCurve2.push_back(t2);
-        }
-      }
-      break;
-      case curveClass::PlatoX:
-      {
-        // первая кривая - Point
-        // вторая кривая - PlatoX
-        const auto result =
-          execPointAndPlatoX(tmin1, tmax1, m_curve1, tmin2, tmax2, m_curve2);
-        if (result)
-        {
-          const auto [intPoint, t1, t2] =
-            result.value();
-          solutionPoints.push_back(intPoint);
-          solutionParameterOnCurve1.push_back(t1);
-          solutionParameterOnCurve2.push_back(t2);
-        }
-      }
-      break;
-      case curveClass::PlatoY:
-      {
-        // первая кривая - Point
-        // вторая кривая - PlatoY
-        const auto result =
-          execPointAndPlatoY(tmin1, tmax1, m_curve1, tmin2, tmax2, m_curve2);
-        if (result)
-        {
-          const auto [intPoint, t1, t2] =
-            result.value();
-          solutionPoints.push_back(intPoint);
-          solutionParameterOnCurve1.push_back(t1);
-          solutionParameterOnCurve2.push_back(t2);
-        }
-      }
-      break;
-      case curveClass::Point:
-      {
-        const auto result =
-          execPointAndPoint(tmin1, tmax1, m_curve1, tmin2, tmax2, m_curve2);
-        if (result)
-        {
-          const auto [intPoint, t1, t2] =
-            result.value();
-          solutionPoints.push_back(intPoint);
-          solutionParameterOnCurve1.push_back(t1);
-          solutionParameterOnCurve2.push_back(t2);
-        }
-      }
-      break;
-    }
-    break;
   }
 }
 
 //-----------------------------------------------------------------------------
 
-inline std::set<double>
-geom2d::curveIntersector::rootsOfCurveVelocity(const baseCurve & curve)
+void
+  geom2d::curveIntersector::performNormal1PlatoX2
+  (
+    const double tmin1,
+    const double tmax1,
+    const double tmin2,
+    const double tmax2
+  )
 {
-  const double tmin1 = curve.parameterMin();
-  const double tmax1 = curve.parameterMax();
-
-  // используем свой компаратор для исключения повторяющихся значений параметра
-  auto curveParameterLess = [](const double lhs, const double rhs) -> bool
+  // первая кривая - Any (Normal)
+  // вторая кривая - PlatoX
+  const auto result =
+    execPlatoXAndAny(tmin2, tmax2, m_curve2, tmin1, tmax1, m_curve1);
+  if (result)
   {
-    return (rhs - lhs) > math::tolerance::tolNumeric;
-  };
-
-  using parameterContainer = std::set<double, decltype(curveParameterLess)>;
-
-  // I - ищем множество значений параметра, в которых кривая по x меняет знак монотонности
-  // то есть, либо меняет уменьшение на увеличение, либо наоборот
-  auto curve1u = [&curve](const double t) -> double
-  {
-    return curve.getVelocity(t).x;
-  };
-  const auto rootsOfCurve1u = math::findFunctionRoots(tmin1, tmax1, curve1u);
-
-  // II - ищем множество значений параметра, в которых кривая по y меняет знак монотонности
-  // то есть, либо меняет уменьшение на увеличение, либо наоборот
-  auto curve1v = [&curve](const double t) -> double
-  {
-    return curve.getVelocity(t).y;
-  };
-  const auto rootsOfCurve1v = math::findFunctionRoots(tmin1, tmax1, curve1v);
-
-  parameterContainer allRoots(curveParameterLess);
-  // собираем корни по u
-  for (const auto t : rootsOfCurve1u)
-  {
-    allRoots.insert(t);
+    const auto [intPoint, t2, t1] =
+      result.value();
+    solutionPoints.push_back(intPoint);
+    solutionParameterOnCurve1.push_back(t1);
+    solutionParameterOnCurve2.push_back(t2);
   }
-  // собираем корни по v
-  for (const auto t : rootsOfCurve1v)
+}
+
+//-----------------------------------------------------------------------------
+
+void
+  geom2d::curveIntersector::performNormal1PlatoY2
+  (
+    const double tmin1,
+    const double tmax1,
+    const double tmin2,
+    const double tmax2
+  )
+{
+  // первая кривая - Any (Normal)
+  // вторая кривая - PlatoY
+  const auto result =
+    execPlatoYAndAny(tmin2, tmax2, m_curve2, tmin1, tmax1, m_curve1);
+  if (result)
   {
-    allRoots.insert(t);
+    const auto [intPoint, t2, t1] =
+      result.value();
+    solutionPoints.push_back(intPoint);
+    solutionParameterOnCurve1.push_back(t1);
+    solutionParameterOnCurve2.push_back(t2);
   }
-  // таким образом исключили все "дупликаты"
-  // теперь собираем всё в обычный std::set
-  std::set<double> result;
-  for (const auto t : allRoots)
+}
+
+//-----------------------------------------------------------------------------
+
+void
+  geom2d::curveIntersector::performNormal1Point2
+  (
+    const double tmin1,
+    const double tmax1,
+    const double tmin2,
+    const double tmax2
+  )
+{
+  // кривая 1 - Normal
+  // кривая 2 - Point
+  const auto result =
+    execPointAndAny(tmin2, tmax2, m_curve2, tmin1, tmax1, m_curve1);
+  if (result)
   {
-    result.insert(t);
+    const auto [intPoint, t2, t1] =
+      result.value();
+    solutionPoints.push_back(intPoint);
+    solutionParameterOnCurve1.push_back(t1);
+    solutionParameterOnCurve2.push_back(t2);
   }
-  return result;
+}
+
+//-----------------------------------------------------------------------------
+
+void
+  geom2d::curveIntersector::performPlatoX1Any2
+  (
+    const double tmin1,
+    const double tmax1,
+    const double tmin2,
+    const double tmax2
+  )
+{
+  // первая кривая - PlatoX
+  // вторая кривая - Any (Screen or Normal)
+  const auto result =
+    execPlatoXAndAny(tmin1, tmax1, m_curve1, tmin2, tmax2, m_curve2);
+  if (result)
+  {
+    const auto [intPoint, t1, t2] =
+      result.value();
+    solutionPoints.push_back(intPoint);
+    solutionParameterOnCurve1.push_back(t1);
+    solutionParameterOnCurve2.push_back(t2);
+  }
+}
+
+//-----------------------------------------------------------------------------
+
+void
+  geom2d::curveIntersector::performPlatoX1PlatoX2
+  (
+    const double tmin1,
+    const double tmax1,
+    const double tmin2,
+    const double tmax2
+  )
+{
+  // обе кривые - PlatoX
+  const auto result =
+    execPlatoXAndPlatoX(tmin1, tmax1, m_curve1, tmin2, tmax2, m_curve2);
+  if (result)
+  {
+    const auto [intPoint, t1, t2] =
+      result.value();
+    solutionPoints.push_back(intPoint);
+    solutionParameterOnCurve1.push_back(t1);
+    solutionParameterOnCurve2.push_back(t2);
+  }
+}
+
+//-----------------------------------------------------------------------------
+
+void
+  geom2d::curveIntersector::performPlatoX1PlatoY2
+  (
+    const double tmin1,
+    const double tmax1,
+    const double tmin2,
+    const double tmax2
+  )
+{
+  // первая кривая - PlatoX
+      // вторая кривая - PlatoY
+  const auto result =
+    execPlatoXAndPlatoY(tmin1, tmax1, m_curve1, tmin2, tmax2, m_curve2);
+  if (result)
+  {
+    const auto [intPoint, t1, t2] = result.value();
+    solutionPoints.push_back(intPoint);
+    solutionParameterOnCurve1.push_back(t1);
+    solutionParameterOnCurve2.push_back(t2);
+  }
+}
+
+//-----------------------------------------------------------------------------
+
+void
+  geom2d::curveIntersector::performPlatoX1Point2
+  (
+    const double tmin1,
+    const double tmax1,
+    const double tmin2,
+    const double tmax2
+  )
+{
+  // кривая 1 - PlatoX
+  // кривая 2 - Point
+  const auto result =
+    execPointAndPlatoX(tmin2, tmax2, m_curve2, tmin1, tmax1, m_curve1);
+  if (result)
+  {
+    const auto [intPoint, t2, t1] =
+      result.value();
+    solutionPoints.push_back(intPoint);
+    solutionParameterOnCurve1.push_back(t1);
+    solutionParameterOnCurve2.push_back(t2);
+  }
+}
+
+//-----------------------------------------------------------------------------
+
+void
+  geom2d::curveIntersector::performPlatoY1Any2
+  (
+    const double tmin1,
+    const double tmax1,
+    const double tmin2,
+    const double tmax2
+  )
+{
+  // первая кривая - PlatoY
+  // вторая кривая - Any (Screen or Normal)
+  const auto result =
+    execPlatoYAndAny(tmin1, tmax1, m_curve1, tmin2, tmax2, m_curve2);
+  if (result)
+  {
+    const auto [intPoint, t1, t2] =
+      result.value();
+    solutionPoints.push_back(intPoint);
+    solutionParameterOnCurve1.push_back(t1);
+    solutionParameterOnCurve2.push_back(t2);
+  }
+}
+
+//-----------------------------------------------------------------------------
+
+void
+  geom2d::curveIntersector::performPlatoY1PlatoX2
+  (
+    const double tmin1,
+    const double tmax1,
+    const double tmin2,
+    const double tmax2
+  )
+{
+  // кривая 1 - PlatoY
+  // кривая 2 - PlatoX
+  const auto result =
+    execPlatoXAndPlatoY(tmin2, tmax2, m_curve2, tmin1, tmax1, m_curve1);
+  if (result)
+  {
+    const auto [intPoint, t2, t1] = result.value();
+    solutionPoints.push_back(intPoint);
+    solutionParameterOnCurve1.push_back(t1);
+    solutionParameterOnCurve2.push_back(t2);
+  }
+}
+
+//-----------------------------------------------------------------------------
+
+void
+  geom2d::curveIntersector::performPlatoY1PlatoY2
+  (
+    const double tmin1,
+    const double tmax1,
+    const double tmin2,
+    const double tmax2
+  )
+{
+  // обе кривые - PlatoY
+  const auto result =
+    execPlatoYAndPlatoY(tmin1, tmax1, m_curve1, tmin2, tmax2, m_curve2);
+  if (result)
+  {
+    const auto [intPoint, t1, t2] =
+      result.value();
+    solutionPoints.push_back(intPoint);
+    solutionParameterOnCurve1.push_back(t1);
+    solutionParameterOnCurve2.push_back(t2);
+  }
+}
+
+//-----------------------------------------------------------------------------
+
+void
+  geom2d::curveIntersector::performPlatoY1Point2
+  (
+    const double tmin1,
+    const double tmax1,
+    const double tmin2,
+    const double tmax2
+  )
+{
+  // первая кривая - PlatoY
+  // вторая кривая - Point
+  const auto result =
+    execPointAndPlatoY(tmin2, tmax2, m_curve2, tmin1, tmax1, m_curve1);
+  if (result)
+  {
+    const auto [intPoint, t2, t1] =
+      result.value();
+    solutionPoints.push_back(intPoint);
+    solutionParameterOnCurve1.push_back(t1);
+    solutionParameterOnCurve2.push_back(t2);
+  }
+}
+
+//-----------------------------------------------------------------------------
+
+void
+  geom2d::curveIntersector::performPoint1Any2
+  (
+    const double tmin1,
+    const double tmax1,
+    const double tmin2,
+    const double tmax2
+  )
+{
+  const auto result = execPointAndAny(tmin1, tmax1, m_curve1, tmin2, tmax2, m_curve2);
+  if (result)
+  {
+    const auto [intPoint, t1, t2] =
+      result.value();
+    solutionPoints.push_back(intPoint);
+    solutionParameterOnCurve1.push_back(t1);
+    solutionParameterOnCurve2.push_back(t2);
+  }
+}
+
+//-----------------------------------------------------------------------------
+
+void
+  geom2d::curveIntersector::performPoint1PlatoX2
+  (
+    const double tmin1,
+    const double tmax1,
+    const double tmin2,
+    const double tmax2
+  )
+{
+  // первая кривая - Point
+  // вторая кривая - PlatoX
+  const auto result =
+    execPointAndPlatoX(tmin1, tmax1, m_curve1, tmin2, tmax2, m_curve2);
+  if (result)
+  {
+    const auto [intPoint, t1, t2] =
+      result.value();
+    solutionPoints.push_back(intPoint);
+    solutionParameterOnCurve1.push_back(t1);
+    solutionParameterOnCurve2.push_back(t2);
+  }
+}
+
+//-----------------------------------------------------------------------------
+
+void
+  geom2d::curveIntersector::performPoint1PlatoY2
+  (
+    const double tmin1,
+    const double tmax1,
+    const double tmin2,
+    const double tmax2
+  )
+{
+  // первая кривая - Point
+  // вторая кривая - PlatoY
+  const auto result =
+    execPointAndPlatoY(tmin1, tmax1, m_curve1, tmin2, tmax2, m_curve2);
+  if (result)
+  {
+    const auto [intPoint, t1, t2] =
+      result.value();
+    solutionPoints.push_back(intPoint);
+    solutionParameterOnCurve1.push_back(t1);
+    solutionParameterOnCurve2.push_back(t2);
+  }
+}
+
+//-----------------------------------------------------------------------------
+
+void
+  geom2d::curveIntersector::performPoint1Point2
+  (
+    const double tmin1,
+    const double tmax1,
+    const double tmin2,
+    const double tmax2
+  )
+{
+  const auto result =
+    execPointAndPoint(tmin1, tmax1, m_curve1, tmin2, tmax2, m_curve2);
+  if (result)
+  {
+    const auto [intPoint, t1, t2] =
+      result.value();
+    solutionPoints.push_back(intPoint);
+    solutionParameterOnCurve1.push_back(t1);
+    solutionParameterOnCurve2.push_back(t2);
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -924,43 +979,7 @@ std::optional<geom2d::IntersecctionSolutionType>
     const double tmaxOfPlatoy,
     const baseCurve& curvePlatoY)
 {
-  // проверяем сначала концы кривой curvePlatoX
-  {
-    std::initializer_list<double> listoft{ tminOfPlatox, tmaxOfPlatox };
-    for (const auto tofPlatoX : listoft)
-    {
-      using namespace geom2d::point_and_curve_alongaxis;
-      const auto pointofPlatoX = curvePlatoX.getPoint(tofPlatoX);
-      solver<DataGetterOfX> solv{ pointofPlatoX, tminOfPlatoy , tmaxOfPlatoy , curvePlatoY };
-      const auto result = solv.execute();
-      if (result)
-      {
-        const auto tofPlatoY = result.value();
-        const auto pointofPlatoY = curvePlatoY.getPoint(tofPlatoY);
-        return IntersecctionSolutionType{ 0.5 * (pointofPlatoY + pointofPlatoX), tofPlatoX, tofPlatoY };
-      }
-    }
-  }
-
-  // теперь проверяем концы кривой curvePlatoY
-  {
-    std::initializer_list<double> listoft{ tminOfPlatoy, tmaxOfPlatoy };
-    for (const auto tofPlatoY : listoft)
-    {
-      using namespace geom2d::point_and_curve_alongaxis;
-      const auto pointofPlatoY = curvePlatoY.getPoint(tofPlatoY);
-      solver<DataGetterOfY> solv{ pointofPlatoY, tminOfPlatox , tmaxOfPlatox , curvePlatoX };
-      const auto result = solv.execute();
-      if (result)
-      {
-        const auto tofPlatoX = result.value();
-        const auto pointofPlatoX = curvePlatoX.getPoint(tofPlatoX);
-        return IntersecctionSolutionType{ 0.5 * (pointofPlatoY + pointofPlatoX), tofPlatoX, tofPlatoY };
-      }
-    }
-  }
-  // далее проверяем полноценное пересечение или его отсутствие (граничные случаи утилизированы выше)
-  return findUniqueIntersection(tminOfPlatox, tmaxOfPlatox, curvePlatoX, tminOfPlatoy, tmaxOfPlatoy, curvePlatoY);
+  return exec_Any_and_Any_Unique_Intersection(tminOfPlatox, tmaxOfPlatox, curvePlatoX, tminOfPlatoy, tmaxOfPlatoy, curvePlatoY);
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -1075,6 +1094,8 @@ std::optional<geom2d::IntersecctionSolutionType>
     const baseCurve& curveAny
   )
 {
+  return exec_Any_and_Any_Unique_Intersection(tminOfPlatox, tmaxOfPlatox, curvePlatoX, tminOfAny, tmaxOfAny, curveAny);
+#if 0
   std::initializer_list listOfPlatoXt{ tminOfPlatox , tmaxOfPlatox };
   // Сначала тестируем конечные точки кривой PlatoX - лежат ли они на Any?
     // trace along X axis of curveAny
@@ -1123,9 +1144,9 @@ std::optional<geom2d::IntersecctionSolutionType>
     return IntersecctionSolutionType{ 0.5 * (p + pofPlatox), tofPlatox, t };
   }
 
-  
-  // Все граничные случаи рассмотрены, значит кривые либо четко пересекаются, либо нет
+  // далее проверяем полноценное пересечение или его отсутствие (граничные случаи утилизированы выше)
   return findUniqueIntersection(tminOfPlatox, tmaxOfPlatox, curvePlatoX, tminOfAny, tmaxOfAny, curveAny);
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -1141,59 +1162,7 @@ std::optional<geom2d::IntersecctionSolutionType>
     const baseCurve& curveAny
   )
 {
-  std::initializer_list listOfPlatoYt{ tminOfPlatoy , tmaxOfPlatoy };
-  // Сначала тестируем конечные точки кривой PlatoY - лежат ли они на Any?
-    // trace along X axis of curveAny
-  for (const auto t : listOfPlatoYt)
-  {
-    const auto p = curvePlatoY.getPoint(t);
-    using namespace geom2d::point_and_curve_alongaxis;
-
-    solver<DataGetterOfX> solv{ p , tminOfAny , tmaxOfAny , curveAny };
-    const auto result = solv.execute();
-    if (not result) continue;
-
-    const auto tofAny = result.value();
-    const auto pofAny = curveAny.getPoint(tofAny);
-    return IntersecctionSolutionType{ 0.5 * (p + pofAny), t, tofAny };
-  }
-  // trace along Y axis of curveAny
-  for (const auto t : listOfPlatoYt)
-  {
-    const auto p = curvePlatoY.getPoint(t);
-    using namespace geom2d::point_and_curve_alongaxis;
-
-    solver<DataGetterOfY> solv{ p, tminOfAny , tmaxOfAny , curveAny };
-    const auto result = solv.execute();
-    if (not result) continue;
-
-    const auto tofAny = result.value();
-    const auto pofAny = curveAny.getPoint(tofAny);
-    return IntersecctionSolutionType{ 0.5 * (p + pofAny), t, tofAny };
-  }
-
-
-  // А теперь тестируем конечные точки кривой Any - лежат ли они на PlatoY?
-  // проходимся только вдоль оси X так как у кривой PlatoY нет диапазона по Y
-  std::initializer_list listOfAnyt{ tminOfAny , tmaxOfAny };
-  for (const auto t : listOfAnyt)
-  {
-    const auto p = curveAny.getPoint(t);
-    using namespace geom2d::point_and_curve_alongaxis;
-
-    solver<DataGetterOfX> solv{ p, tminOfPlatoy, tmaxOfPlatoy, curvePlatoY };
-    const auto result = solv.execute();
-    if (not result) continue;
-
-    const auto tofPlatoy = result.value();
-    const auto pofPlatoy = curvePlatoY.getPoint(tofPlatoy);
-    return IntersecctionSolutionType{ 0.5 * (p + pofPlatoy), tofPlatoy, t };
-  }
-
-
-  // Все граничные случаи рассмотрены, значит кривые либо четко пересекаются, либо отстоят друг от друга на достаточном
-  // расстоянии, чтобы мы могли считать их непересекающимися
-  return findUniqueIntersection(tminOfPlatoy, tmaxOfPlatoy, curvePlatoY, tminOfAny, tmaxOfAny, curveAny);
+  return exec_Any_and_Any_Unique_Intersection(tminOfPlatoy, tmaxOfPlatoy, curvePlatoY, tminOfAny, tmaxOfAny, curveAny);
 }
 
 //-----------------------------------------------------------------------------
@@ -1209,77 +1178,7 @@ std::optional<geom2d::IntersecctionSolutionType>
     const baseCurve& curveScreen
   )
 {
-  // утилизация случаев, когда конец или начало одной кривой лежат на второй и наоборот
-  {
-    // Концы кривой Normal лежат ли на кривой Screen?
-    std::initializer_list tsofNormal{ tminOfNormal, tmaxOfNormal };
-    // вдоль оси X
-    for (const auto tofNormal : tsofNormal)
-    {
-      const auto pofNormal = curveNormal.getPoint(tofNormal);
-
-      using namespace geom2d::point_and_curve_alongaxis;
-
-      solver<DataGetterOfX> solv{ pofNormal, tminOfScreen, tmaxOfScreen, curveScreen };
-      const auto result = solv.execute();
-      if (not result) continue;
-
-      const auto tofScreen = result.value();
-      const auto pofScreen = curveScreen.getPoint(tofScreen);
-      return IntersecctionSolutionType{ 0.5 * (pofNormal + pofScreen), tofNormal, tofScreen };
-    }
-    // вдоль оси Y
-    for (const auto tofNormal : tsofNormal)
-    {
-      const auto pofNormal = curveNormal.getPoint(tofNormal);
-
-      using namespace geom2d::point_and_curve_alongaxis;
-
-      solver<DataGetterOfY> solv{ pofNormal, tminOfScreen, tmaxOfScreen, curveScreen };
-      const auto result = solv.execute();
-      if (not result) continue;
-
-      const auto tofScreen = result.value();
-      const auto pofScreen = curveScreen.getPoint(tofScreen);
-      return IntersecctionSolutionType{ 0.5 * (pofNormal + pofScreen), tofNormal, tofScreen };
-    }
-  }
-
-  {
-    // Концы кривой Screen лежат ли на кривой Normal?
-    std::initializer_list tsofScreen{ tminOfScreen, tmaxOfScreen };
-    // вдоль оси X
-    for (const auto tofScreen : tsofScreen)
-    {
-      const auto pofScreen = curveScreen.getPoint(tofScreen);
-
-      using namespace geom2d::point_and_curve_alongaxis;
-
-      solver<DataGetterOfX> solv{ pofScreen, tminOfNormal, tmaxOfNormal, curveNormal };
-      const auto result = solv.execute();
-      if (not result) continue;
-
-      const auto tofNormal = result.value();
-      const auto pofNormal = curveNormal.getPoint(tofNormal);
-      return IntersecctionSolutionType{ 0.5 * (pofScreen + pofNormal), tofNormal, tofScreen };
-    }
-    // вдоль оси Y
-    for (const auto tofScreen : tsofScreen)
-    {
-      const auto pofScreen = curveScreen.getPoint(tofScreen);
-
-      using namespace geom2d::point_and_curve_alongaxis;
-
-      solver<DataGetterOfY> solv{ pofScreen, tminOfNormal, tmaxOfNormal, curveNormal };
-      const auto result = solv.execute();
-      if (not result) continue;
-
-      const auto tofNormal = result.value();
-      const auto pofNormal = curveNormal.getPoint(tofNormal);
-      return IntersecctionSolutionType{ 0.5 * (pofScreen + pofNormal), tofNormal, tofScreen };
-    }
-  }
-  return std::nullopt;
+  return exec_Any_and_Any_Unique_Intersection(tminOfNormal, tmaxOfNormal, curveNormal, tminOfScreen, tmaxOfScreen, curveScreen);
 }
 
 //-----------------------------------------------------------------------------
@@ -1635,6 +1534,116 @@ void geom2d::curveIntersector::dumpIntersections(std::ostream& ost) const
       throw std::logic_error("intersection point of two curves is incorrect!");
     }
   }
+}
+
+std::optional<geom2d::IntersecctionSolutionType>
+  geom2d::curveIntersector::exec_Any_and_Any_Unique_Intersection
+  (
+    const double tmin1,
+    const double tmax1,
+    const baseCurve& curve1,
+    const double tmin2,
+    const double tmax2,
+    const baseCurve& curve2
+  )
+{
+  const auto cc1 = baseCurve::getCurveClass(tmin1, tmax1, curve1);
+  const auto cc2 = baseCurve::getCurveClass(tmin2, tmax2, curve2);
+
+  if ((cc1 == curveClass::Point) or (cc2 == curveClass::Point))
+  {
+    return std::nullopt;
+  }
+
+  if (cc1 == cc2)
+  {
+    return std::nullopt;
+  }
+  // утилизация случаев, когда конец или начало одной кривой лежат на второй и наоборот
+  {
+    // Концы кривой Normal лежат ли на кривой Screen?
+    std::initializer_list tof1{ tmin1, tmax1 };
+    if (cc2 != curveClass::PlatoX)
+    {
+      // вдоль оси X
+      for (const auto tof1 : std::initializer_list{ tmin1, tmax1 })
+      {
+        const auto pof1 = curve1.getPoint(tof1);
+
+        using namespace geom2d::point_and_curve_alongaxis;
+
+        solver<DataGetterOfX> solv{ pof1, tmin2, tmax2, curve2 };
+        const auto result = solv.execute();
+        if (not result) continue;
+
+        const auto ton2 = result.value();
+        const auto pon2 = curve2.getPoint(ton2);
+        return IntersecctionSolutionType{ 0.5 * (pof1 + pon2), tof1, ton2 };
+      }
+    }
+    if (cc2 != curveClass::PlatoY)
+    {
+      // вдоль оси Y
+      for (const auto tof1 : std::initializer_list{ tmin1, tmax1 })
+      {
+        const auto pon1 = curve1.getPoint(tof1);
+
+        using namespace geom2d::point_and_curve_alongaxis;
+
+        solver<DataGetterOfY> solv{ pon1, tmin2, tmax2, curve2 };
+        const auto result = solv.execute();
+        if (not result) continue;
+
+        const auto ton2 = result.value();
+        const auto pon2 = curve2.getPoint(ton2);
+        return IntersecctionSolutionType{ 0.5 * (pon1 + pon2), tof1, ton2 };
+      }
+    }
+  }
+
+  {
+    // Концы кривой Screen лежат ли на кривой Normal?
+    std::initializer_list tsofScreen{ tmin2, tmax2 };
+    if (cc1 != curveClass::PlatoX)
+    {
+      // вдоль оси X
+      for (const auto tof2 : tsofScreen)
+      {
+        const auto pof2 = curve2.getPoint(tof2);
+
+        using namespace geom2d::point_and_curve_alongaxis;
+
+        solver<DataGetterOfX> solv{ pof2, tmin1, tmax1, curve1 };
+        const auto result = solv.execute();
+        if (not result) continue;
+
+        const auto ton1 = result.value();
+        const auto pon1 = curve1.getPoint(ton1);
+        return IntersecctionSolutionType{ 0.5 * (pof2 + pon1), ton1, tof2 };
+      }
+    }
+    if (cc1 != curveClass::PlatoY)
+    {
+      // вдоль оси Y
+      for (const auto tof2 : tsofScreen)
+      {
+        const auto pof2 = curve2.getPoint(tof2);
+
+        using namespace geom2d::point_and_curve_alongaxis;
+
+        solver<DataGetterOfY> solv{ pof2, tmin1, tmax1, curve1 };
+        const auto result = solv.execute();
+        if (not result) continue;
+
+        const auto ton1 = result.value();
+        const auto pon1 = curve1.getPoint(ton1);
+        return IntersecctionSolutionType{ 0.5 * (pof2 + pon1), ton1, tof2 };
+      }
+    }
+  }
+
+  // далее проверяем полноценное пересечение или его отсутствие (граничные случаи утилизированы выше)
+  return findUniqueIntersection(tmin1, tmax1, curve1, tmin2, tmax2, curve2);
 }
 
 //-----------------------------------------------------------------------------

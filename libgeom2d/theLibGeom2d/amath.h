@@ -29,5 +29,11 @@ namespace math
     // общий толеранс
     static constexpr double tolNumeric = 1.0e-9;
 
+    // толеранс скалярного произведения единичных векторов
+    static constexpr double tolScalarMult = 1.0e-7;
+
+    // толеранс параметра
+    static constexpr double tolParameter = 1.0e-10;
+
   };
 }

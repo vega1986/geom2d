@@ -50,51 +50,5 @@ int main()
   std::cout << "Time difference = " 
             << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << " [ms]" << std::endl;
 
-  // протестируем поиск корней функции на отрезке
-  // корни 1 и 2
-  auto func1 = [](double t) -> double
-  {
-    return t * t - 3.0 * t + 2;
-  };
-  // корни 1, 2, 5, 7
-  auto func2 = [](double t) -> double
-  {
-    return t * t * t * t - 15 * t * t * t + 73.0 * t * t - 129.0 * t + 70;
-  };
-  // корни 1 2 5 7 9  -3 -5
-  auto func3 = [](double t) -> double
-  {
-    return                  std::pow(t, 7.0)
-                -    16.0 * std::pow(t, 6.0)
-                +    31.0 * std::pow(t, 5.0)
-                +   518.0 * std::pow(t, 4.0)
-                -  1937.0 * std::pow(t, 3.0)
-                -  2572.0 * std::pow(t, 2.0)
-                + 13425.0 * t
-                -  9450.0;
-  };
-  auto roots = math::findFunctionRoots(-5.0 - 0.1, 9.0 + 0.1, func3);
-  std::cout << std::endl << "ROOTS:" << std::endl << std::endl;
-  for (const auto r : roots)
-  {
-    std::cout << r << std::endl;
-  }
-  std::cout << std::endl << "-------------------------------------------------------------------------------" << std::endl << std::endl;
-  // тестируем INTERSECTOR - точка отрезок
-  std::cout << std::endl << "point - segment" << std::endl;
-  {
-    std::cout << "# 1" << std::endl;
-    {
-      segmentCurve theSegment{ point{0.0, 0.0}, point{1.0, 0.0} };
-      pointCurve thePoint{ point{1.0, 1.0} };
-
-      curveIntersector theIntersector{ theSegment, thePoint};
-      theIntersector.perform();
-
-      theIntersector.dumpIntersections(std::cout);
-    }
-  }
-  //char ch = 0;
-  //std::cin >> ch;
   return 1;
 }

@@ -6,9 +6,24 @@
 
 namespace geom2d
 {
+  
+  // классифицируем поведение участка кривой на участке монотонности
+  enum class curveClass : unsigned short int
+  {
+    Screen = 1, // (dx / dt > 0 && dy / dt < 0) || (dx / dt < 0 && dy / dt > 0)
+    Normal = 2, // (dx / dt > 0 && dy / dt > 0) || (dx / dt < 0 && dy / dt < 0)
+    PlatoX = 3, // (dx / dt == 0 && (dy / dt>0 || dy / dt < 0)
+    PlatoY = 4, // (dy / dt == 0 && (dx / dt>0 || dx / dt < 0)
+    Point = 5  // (dx / dt == 0 && dy / dt == 0)
+  };
 
   class baseCurve
   {
+  public:
+    // Получаем класс кривой на монотонном участке!
+    static
+      curveClass
+      getCurveClass(const double tmin, const double tmax, const baseCurve& curve);
 
   protected:
 

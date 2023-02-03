@@ -12,7 +12,7 @@ TEST(Intersector, Point_Point_Not_Intersected)
   pointCurve point2{ point{1.0, 0.0} };
 
   curveIntersector theIntersector{ point1, point2 };
-  theIntersector.perform();
+  theIntersector.fulfill();
 
   // theIntersector.dumpIntersections(std::cout);
   const auto points = theIntersector.getSolutionPoints();
@@ -29,7 +29,7 @@ TEST(Intersector, Point_Point_Intersected)
   pointCurve curve2{ point{1.0, 0.0} };
 
   curveIntersector theIntersector{ curve1, curve2 };
-  theIntersector.perform();
+  theIntersector.fulfill();
 
   // theIntersector.dumpIntersections(std::cout);
   const auto points = theIntersector.getSolutionPoints();

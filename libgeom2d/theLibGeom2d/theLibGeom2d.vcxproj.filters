@@ -87,6 +87,24 @@
     <ClInclude Include="avector.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
+    <ClInclude Include="arbitraryCurve2d.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="curveAnalizerBase.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="curveMutualDistanceCalculator.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="distanceCalculator_point_and_plato.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="point_and_curve_extrema.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="distanceCalculator_two_parallel_plato.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="theLibGeom2d.cpp">
@@ -138,6 +156,21 @@
       <Filter>Исходные файлы</Filter>
     </ClCompile>
     <ClCompile Include="avector.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="curveAnalizerBase.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="curveMutualDistanceCalculator.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="distanceCalculator_point_and_plato.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="point_and_curve_extrema.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="distanceCalculator_two_parallel_plato.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
   </ItemGroup>

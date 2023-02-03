@@ -1,6 +1,11 @@
 #include "point.h"
 #include "amath.h"
 
+const double geom2d::point::length() const
+{
+  return std::sqrt(x * x + y * y);
+}
+
 double geom2d::point::distance(const point& p, const point& q)
 {
   const double dx = p.x - q.x;
@@ -8,9 +13,9 @@ double geom2d::point::distance(const point& p, const point& q)
   return std::sqrt(dx * dx + dy * dy);
 }
 
-bool geom2d::point::isSame(const point& p, const point& q)
+bool geom2d::point::isSame(const point& p, const point& q, const double toler)
 {
-  return (distance(p, q) <= math::tolerance::tolPoint);
+  return (distance(p, q) <= toler);
 }
 
 geom2d::point geom2d::operator+(const point& p, const point& q)
@@ -36,4 +41,10 @@ geom2d::point geom2d::operator*(const double value, const point & p)
 geom2d::point geom2d::operator/(const point& p, const double value)
 {
   return point{ p.x / value, p.y / value };
+}
+
+std::ostream& geom2d::operator<<(std::ostream& ost, const point& p)
+{
+  ost << "{" << p.x << ", " << p.y << "}";
+  return ost;
 }

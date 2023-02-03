@@ -36,12 +36,21 @@
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="bezier_curves_intersection.cpp" />
+    <ClCompile Include="eigens_blas_solver.cpp" />
+    <ClCompile Include="find_multiple_function_roots.cpp" />
+    <ClCompile Include="intersection_of_circle_and_segment.cpp" />
     <ClCompile Include="point_point.cpp" />
     <ClCompile Include="point_segment.cpp" />
+    <ClCompile Include="segment_intersector_cross_verification_with_native_intersector.cpp" />
+    <ClCompile Include="segment_native_intersector.cpp" />
+    <ClCompile Include="segment_segemnt_other_tests.cpp" />
     <ClCompile Include="segment_segment_hor.cpp" />
     <ClCompile Include="segment_segment_hor_any.cpp" />
     <ClCompile Include="segment_segment_ver.cpp" />
     <ClCompile Include="segment_segment_ver_any.cpp" />
+    <ClCompile Include="testing_of_extrema.cpp" />
+    <ClCompile Include="testing_several_arbitrary_curves.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\libgeom2d\theLibGeom2d\theLibGeom2d.vcxproj">
@@ -66,7 +75,8 @@
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)libgeom2d\theLibGeom2d;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\Public\Documents\eigen\3_4_0;$(SolutionDir)libgeom2d\theLibGeom2d;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -84,7 +94,8 @@
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)libgeom2d\theLibGeom2d;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\Public\Documents\eigen\3_4_0;$(SolutionDir)libgeom2d\theLibGeom2d;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -101,7 +112,8 @@
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)libgeom2d\theLibGeom2d;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\Public\Documents\eigen\3_4_0;$(SolutionDir)libgeom2d\theLibGeom2d;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -120,7 +132,8 @@
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)libgeom2d\theLibGeom2d;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\Public\Documents\eigen\3_4_0;$(SolutionDir)libgeom2d\theLibGeom2d;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>

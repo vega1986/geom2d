@@ -4,6 +4,7 @@
 #include "point.h"
 #include "IntersecctionSolutionType.h"
 #include "theLibGeom2d.h"
+#include "curveAnalizerBase.h"
 
 #include <set>
 #include <vector>
@@ -13,18 +14,8 @@
 
 namespace geom2d
 {
-  // классифицируем поведение участка кривой на участке монотонности
-  enum class THELIBGEOM2D_API curveClass : unsigned short int
-  {
-    Screen = 1, // (dx / dt > 0 && dy / dt < 0) || (dx / dt < 0 && dy / dt > 0)
-    Normal = 2, // (dx / dt > 0 && dy / dt > 0) || (dx / dt < 0 && dy / dt < 0)
-    PlatoX = 3, // (dx / dt == 0 && (dy / dt>0 || dy / dt < 0)
-    PlatoY = 4, // (dy / dt == 0 && (dx / dt>0 || dx / dt < 0)
-    Point  = 5  // (dx / dt == 0 && dy / dt == 0)
-  };
-
   // класс предназначен для поиска точек пересечения двух кривых типа baseCurve,
-  class curveIntersector
+  class curveIntersector final : private curveAnalizerBase
   {
   private:
     enum class parseAxis : unsigned short int
@@ -34,20 +25,59 @@ namespace geom2d
     };
   public:
     THELIBGEOM2D_API curveIntersector (const baseCurve & curve1, const baseCurve & curve2)
-      : m_curve1(curve1), m_curve2(curve2)
-    {}
+      : curveAnalizerBase(curve1, curve2){}
 
-    // ищем точки пересечения
-    THELIBGEOM2D_API void perform();
+    THELIBGEOM2D_API void fulfill();
 
   private:
+    
+    virtual void postProcessing();
 
-    // ищем точки пересечения на заданных участках монотонности обеих кривых
-    void perform(const double tmin1, const double tmax1, const double tmin2, const double tmax2);
+    void excludeDuplicatesFromSolution();
 
-    // ищем значения параметра при которых направление вдижения точки
-    // меняется на противоположное вдоль одной из координатных осей
-    static std::set<double> rootsOfCurveVelocity(const baseCurve& curve);
+    virtual void performScreen1Screen2(const double tmin1, const double tmax1, const double tmin2, const double tmax2);
+
+    virtual void performScreen1Normal2(const double tmin1, const double tmax1, const double tmin2, const double tmax2);
+
+    virtual void performScreen1PlatoX2(const double tmin1, const double tmax1, const double tmin2, const double tmax2);
+
+    virtual void performScreen1PlatoY2(const double tmin1, const double tmax1, const double tmin2, const double tmax2);
+
+    virtual void performScreen1Point2(const double tmin1, const double tmax1, const double tmin2, const double tmax2);
+
+    virtual void performNormal1Screen2(const double tmin1, const double tmax1, const double tmin2, const double tmax2);
+
+    virtual void performNormal1Normal2(const double tmin1, const double tmax1, const double tmin2, const double tmax2);
+
+    virtual void performNormal1PlatoX2(const double tmin1, const double tmax1, const double tmin2, const double tmax2);
+
+    virtual void performNormal1PlatoY2(const double tmin1, const double tmax1, const double tmin2, const double tmax2);
+
+    virtual void performNormal1Point2(const double tmin1, const double tmax1, const double tmin2, const double tmax2);
+
+    virtual void performPlatoX1Any2(const double tmin1, const double tmax1, const double tmin2, const double tmax2);
+
+    virtual void performPlatoX1PlatoX2(const double tmin1, const double tmax1, const double tmin2, const double tmax2);
+
+    virtual void performPlatoX1PlatoY2(const double tmin1, const double tmax1, const double tmin2, const double tmax2);
+
+    virtual void performPlatoX1Point2(const double tmin1, const double tmax1, const double tmin2, const double tmax2);
+
+    virtual void performPlatoY1Any2(const double tmin1, const double tmax1, const double tmin2, const double tmax2);
+
+    virtual void performPlatoY1PlatoX2(const double tmin1, const double tmax1, const double tmin2, const double tmax2);
+
+    virtual void performPlatoY1PlatoY2(const double tmin1, const double tmax1, const double tmin2, const double tmax2);
+
+    virtual void performPlatoY1Point2(const double tmin1, const double tmax1, const double tmin2, const double tmax2);
+
+    virtual void performPoint1Any2(const double tmin1, const double tmax1, const double tmin2, const double tmax2);
+
+    virtual void performPoint1PlatoX2(const double tmin1, const double tmax1, const double tmin2, const double tmax2);
+
+    virtual void performPoint1PlatoY2(const double tmin1, const double tmax1, const double tmin2, const double tmax2);
+
+    virtual void performPoint1Point2(const double tmin1, const double tmax1, const double tmin2, const double tmax2);
 
     ///////////////////
     //               //
@@ -273,29 +303,42 @@ namespace geom2d
 
     THELIBGEOM2D_API void dumpIntersections(std::ostream& ost) const;
 
-    std::vector<point> getSolutionPoints() const
+    THELIBGEOM2D_API std::vector<point> getSolutionPoints() const
     {
       return solutionPoints;
     }
 
-    std::vector<double> getSolutionT1() const
+    THELIBGEOM2D_API std::vector<double> getSolutionT1() const
     {
       return solutionParameterOnCurve1;
     }
 
-    std::vector<double> getSolutionT2() const
+    THELIBGEOM2D_API std::vector<double> getSolutionT2() const
     {
       return solutionParameterOnCurve2;
     }
 
+  public:
+    // Исследуем решение в случае произвольных (монотонных) кривых имеющих класс, допускающий только одно пересечение (но не точки!)
+    THELIBGEOM2D_API
+    static
+      std::optional<geom2d::IntersecctionSolutionType>
+      exec_Any_and_Any_Unique_Intersection
+      (
+        const double tmin1,
+        const double tmax1,
+        const baseCurve& curve1,
+        const double tmin2,
+        const double tmax2,
+        const baseCurve& curve2
+      );
+
 
   private:
-
-    const baseCurve & m_curve1;
-    const baseCurve & m_curve2;
 
     std::vector<point> solutionPoints;
     std::vector<double> solutionParameterOnCurve1;
     std::vector<double> solutionParameterOnCurve2;
+
   };
 }

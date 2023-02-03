@@ -113,18 +113,18 @@ namespace geom2d
             double trefMiddle = 0.0;
             point pointRefOnMiddle;
             // обезопасим себя на случай абсолютно вертикальной кривой otherCurve вдоль нерефересной оси
-            if (DataGetter::abscissaOf(pointOthOnMiddle) <= DataGetter::abscissaOf(pointRefOfCommonMin))
-            {
-              trefMiddle = trefOfCommonMin;
-              pointRefOnMiddle = pointRefOfCommonMin;
-            }
-            else if (DataGetter::abscissaOf(pointOthOnMiddle) >= DataGetter::abscissaOf(pointRefOfCommonMax))
-            {
-              trefMiddle = trefOfCommonMax;
-              pointRefOnMiddle = pointRefOfCommonMax;
-            }
-            else
-            {
+            //if (DataGetter::abscissaOf(pointOthOnMiddle) <= DataGetter::abscissaOf(pointRefOfCommonMin))
+            //{
+            //  trefMiddle = trefOfCommonMin;
+            //  pointRefOnMiddle = pointRefOfCommonMin;
+            //}
+            //else if (DataGetter::abscissaOf(pointOthOnMiddle) >= DataGetter::abscissaOf(pointRefOfCommonMax))
+            //{
+            //  trefMiddle = trefOfCommonMax;
+            //  pointRefOnMiddle = pointRefOfCommonMax;
+            //}
+            //else
+            //{
               auto func = [theRefCurve = &referenceCurve, abscissaToFind = DataGetter::abscissaOf(pointOthOnMiddle)](const double t) -> double
               {
                 return DataGetter::abscissaOf(theRefCurve->getPoint(t)) - abscissaToFind;
@@ -133,9 +133,9 @@ namespace geom2d
               const double trefMaxCurrent = std::max(trefOfCommonMin, trefOfCommonMax);
               trefMiddle = math::findUniqueFunctionRoot(trefMinCurrent, trefMaxCurrent, func);
               pointRefOnMiddle = referenceCurve.getPoint(trefMiddle);
-            }
+            //}
             // проверяем середину
-            if (point::isSame(pointOthOnMiddle, pointRefOnMiddle))
+            if (point::isSame(pointOthOnMiddle, pointRefOnMiddle) or std::abs(tothOfCommonMax - tothOfCommonMin) < math::tolerance::tolParameter)
             {
               return IntersecctionSolutionType{ 0.5 * (pointOthOnMiddle + pointRefOnMiddle), trefMiddle, tothMiddle };
             }

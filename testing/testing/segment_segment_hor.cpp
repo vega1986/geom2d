@@ -24,7 +24,7 @@ TEST(Intersector, Segment_Segment_hor_01)
     segmentCurve seg2{ point{x21, y}, point{x22, y} };
 
     curveIntersector theIntersector{ seg1, seg2 };
-    theIntersector.perform();
+    theIntersector.fulfill();
 
     const auto points = theIntersector.getSolutionPoints();
     const auto t1s = theIntersector.getSolutionT1();
@@ -54,7 +54,7 @@ TEST(Intersector, Segment_Segment_hor_02)
     segmentCurve seg2{ point{x21, y}, point{x22, y} };
 
     curveIntersector theIntersector{ seg1, seg2 };
-    theIntersector.perform();
+    theIntersector.fulfill();
 
     const auto points = theIntersector.getSolutionPoints();
     const auto t1s = theIntersector.getSolutionT1();
@@ -87,7 +87,7 @@ TEST(Intersector, Segment_Segment_hor_03)
     segmentCurve seg2{ point{x21, y}, point{x22, y} };
 
     curveIntersector theIntersector{ seg1, seg2 };
-    theIntersector.perform();
+    theIntersector.fulfill();
 
     const auto points = theIntersector.getSolutionPoints();
     const auto t1s = theIntersector.getSolutionT1();
@@ -125,7 +125,7 @@ TEST(Intersector, Segment_Segment_hor_04)
     segmentCurve seg2{ point{x21, y}, point{x22, y} };
 
     curveIntersector theIntersector{ seg1, seg2 };
-    theIntersector.perform();
+    theIntersector.fulfill();
 
     const auto points = theIntersector.getSolutionPoints();
     const auto t1s = theIntersector.getSolutionT1();
@@ -163,7 +163,7 @@ TEST(Intersector, Segment_Segment_hor_05)
     segmentCurve seg2{ point{x21, y}, point{x22, y} };
 
     curveIntersector theIntersector{ seg1, seg2 };
-    theIntersector.perform();
+    theIntersector.fulfill();
 
     const auto points = theIntersector.getSolutionPoints();
     const auto t1s = theIntersector.getSolutionT1();
@@ -201,7 +201,7 @@ TEST(Intersector, Segment_Segment_hor_06)
     segmentCurve seg2{ point{x21, y}, point{x22, y} };
 
     curveIntersector theIntersector{ seg1, seg2 };
-    theIntersector.perform();
+    theIntersector.fulfill();
 
     const auto points = theIntersector.getSolutionPoints();
     const auto t1s = theIntersector.getSolutionT1();
