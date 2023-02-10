@@ -3,6 +3,7 @@
 #include "pointCurve.h"
 #include "segmentCurve.h"
 #include "arbitraryCurve2d.h"
+#include "bezierCurve2d.h"
 
 #include <random>
 #include <cmath>
@@ -734,4 +735,20 @@ TEST(EXTREMA, Two_Circles)
     // std::cout << "passed: " << passed << std::endl;
     ++passed;
   }
+}
+
+TEST(EXTREMA, BEZIER_AND_BEZIER)
+{
+  using namespace geom2d;
+  
+  bezierCurve bc1{ std::initializer_list{point{-1.0, 0.0}, point{0.0, 0.0}, point{0.0, 1.0}} };
+  bezierCurve bc2{ std::initializer_list{point{0.0, -1.0}, point{0.0, 0.0}, point{1.0, 0.0}} };
+
+  curveMutualDistanceCalculator calc{ bc1, bc2 };
+  calc.fulfill();
+
+  const auto [dist, t1, t2] = calc.getExtrema();
+
+  ASSERT_NEAR(t1, 0.5, 1.0e-10);
+  ASSERT_NEAR(t2, 0.5, 1.0e-10);
 }
