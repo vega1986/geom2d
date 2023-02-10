@@ -48,3 +48,10 @@ std::ostream& geom2d::operator<<(std::ostream& ost, const point& p)
   ost << "{" << p.x << ", " << p.y << "}";
   return ost;
 }
+
+std::istream& geom2d::operator>>(std::istream& ist, point& p)
+{
+  char delim{ 0 };
+  ist >> delim >> p.x >> delim >> p.y >> delim;
+  return ist;
+}
