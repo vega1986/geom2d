@@ -4,51 +4,96 @@
 #include <iostream>
 #include <chrono>
 
-#include "amath.h"
+//#include "amath.h"
 #include "bezierCurve2d.h"
-#include "findFunctionRoots.h"
 #include "curveIntersector.h"
-#include "pointCurve.h"
-#include "segmentCurve.h"
+#include "curveMutualDistanceCalculator.h"
+//#include "findFunctionRoots.h"
+//#include "curveIntersector.h"
+//#include "pointCurve.h"
+//#include "segmentCurve.h"
 
 int main()
 {
-  //using namespace math;
-  //auto fac5 = factorial(5);
-  //std::cout << "factorial(5) = " << fac5 << std::endl;
-
-  //auto combx = comb(35, 35);
-  //std::cout << "combx = " << combx << std::endl;
-
-  //auto pp = std::pow(0.0, 1.0);
-  //std::cout << "pow = " << pp << std::endl;
-
   using namespace geom2d;
-  bezierCurve myCurve(std::initializer_list<point>{{0.0, 0.0}, {1.0, 0.0}, {1.0, 1.0}});
 
-  constexpr double tcheck = 0.5;
-  auto pp = myCurve.getPoint(tcheck);
-  auto ppDerviv = myCurve.getVelocity(tcheck);
-  std::cout << "pp.x = " << pp.x << " pp.y = " << pp.y << std::endl;
-  std::cout << "DER.x = " << ppDerviv.x << " DER.y = " << ppDerviv.y << std::endl;
-
-  // тестирование функции math::power
-  // std::cout << "3.0^11 = " << math::power(3.0, 11);
-  bool qq = false;
-  
-  std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-  for (size_t i = 0; i < 10000000; ++i)
+  while (true)
   {
-    const double w = math::power(3.0, i % 13);
-    //const double w = std::powf(3.0, i % 13);
-    qq = w > 658.0;
-    //std::cout << w << std::endl;
+    std::vector<point> points1;
+    std::vector<point> points2;
+
+    std::cout << "input Bezier curve 1: ";
+    
+    char ch = 0;
+    std::cin >> ch;
+    if (ch == 'q') break;
+
+    std::cin.unget();
+    while (std::cin)
+    {
+      point p;
+      std::cin >> p;
+      points1.push_back(p);
+
+      char symPost = 0;
+      std::cin >> symPost;
+      if (symPost == '.')
+      {
+        break;
+      }
+      else
+      {
+        std::cin.unget();
+      }
+    }
+
+    std::cout << "input Bezier curve 2: ";
+    while (std::cin)
+    {
+      point p;
+      std::cin >> p;
+      points2.push_back(p);
+
+      char symPost = 0;
+      std::cin >> symPost;
+      if (symPost == '.')
+      {
+        break;
+      }
+      else
+      {
+        std::cin.unget();
+      }
+    }
+
+    bezierCurve bc1{ points1 };
+    bezierCurve bc2{ points2 };
+
+    curveIntersector inter{ bc1, bc2 };
+    inter.fulfill();
+
+    const auto ips = inter.getSolutionPoints();
+    const auto its1 = inter.getSolutionT1();
+    const auto its2 = inter.getSolutionT2();
+
+    if (not ips.empty())
+    {
+      const auto n = ips.size();
+      for (size_t j = 0; j < n; ++j)
+      {
+        std::cout << std::endl << "  intersection point: (" << j + 1 << "): " << ips[j] << " | t1 = " << its1[j] << " | t2 = " << its2[j] << std::endl;
+      }
+      std::cout << std::endl;
+    }
+    else
+    {
+      curveMutualDistanceCalculator dc{ bc1, bc2 };
+      dc.fulfill();
+      const auto [dist, t1, t2] = dc.getExtrema();
+      std::cout << std::endl << "  mutual nearest point: " << dist << " | t1 = " << t1 << " | t2 = " << t2 << std::endl;
+      std::cout << std::endl;
+    }
   }
-  std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-  std::cout << qq << std::endl;
 
-  std::cout << "Time difference = " 
-            << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << " [ms]" << std::endl;
-
-  return 1;
+  return 0;
 }
