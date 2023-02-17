@@ -2,8 +2,6 @@
 #include "avector.h"
 #include "amath.h"
 
-#include "Eigen/Dense"
-
 geom2d::segmentCurve::segmentCurve(const point first, const point second)
   :
   baseCurve(),
@@ -249,9 +247,9 @@ std::optional<std::pair<double, double>>
   else
   {
     // решаем СЛАУ 2x2
-    using namespace Eigen;
-    Matrix2d A;
-    Vector2d right_part;
+    //using namespace Eigen;
+    //Matrix2d A;
+    //Vector2d right_part;
 
     const auto b1 = seg1.start();
     const auto e1 = seg1.finish();
@@ -259,12 +257,39 @@ std::optional<std::pair<double, double>>
     const auto b2 = seg2.start();
     const auto e2 = seg2.finish();
 
-    A << (e1 - b1).x, (b2 - e2).x, (e1 - b1).y, (b2 - e2).y;
-    right_part << (b2 - b1).x, (b2 - b1).y;
+    // a * t1 + b * t2 = c
+    // d * t1 + e * t2 = f
+    const double a = (e1 - b1).x;
+    const double b = (b2 - e2).x;
+    const double c = (b2 - b1).x;
 
-    const Vector2d solution = A.fullPivLu().solve(right_part);
-    const auto t1 = solution(0);
-    const auto t2 = solution(1);
+    const double d = (e1 - b1).y;
+    const double e = (b2 - e2).y;
+    const double f = (b2 - b1).y;
+
+    // determinant of matrix
+    // |         |
+    // | a11 a12 |
+    // | a21 a22 |
+    // |         |
+    auto det = [](const double a11, const double a12, const double a21, const double a22) -> auto
+    {
+      return a11 * a22 - a12 * a21;
+    };
+
+    const auto mainDet = det(a, b, d, e);
+    const auto det1    = det(c, b, f, e);
+    const auto det2    = det(a, c, d, f);
+
+    const auto t1 = det1 / mainDet;
+    const auto t2 = det2 / mainDet;
+
+    //A << (e1 - b1).x, (b2 - e2).x, (e1 - b1).y, (b2 - e2).y;
+    //right_part << (b2 - b1).x, (b2 - b1).y;
+
+    //const Vector2d solution = A.fullPivLu().solve(right_part);
+    //const auto t1 = solution(0);
+    //const auto t2 = solution(1);
     return std::pair{ t1, t2 };
   }
   return std::nullopt;
