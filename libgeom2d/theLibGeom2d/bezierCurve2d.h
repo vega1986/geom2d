@@ -9,7 +9,7 @@
 namespace geom2d
 {
 
-  class bezierCurve : public baseCurve
+  class bezierCurve final : public baseCurve
   {
   private:
 

@@ -6,7 +6,7 @@
 namespace geom2d
 {
 
-  class pointCurve : public baseCurve
+  class pointCurve final : public baseCurve
   {
   public:
     THELIBGEOM2D_API pointCurve(const point thePoint);

@@ -20,7 +20,7 @@ namespace geom2d
   
 
   template<OneArgFunction XPointf, OneArgFunction YPointf, OneArgFunction XVelocityf, OneArgFunction YVelocityf>
-  class arbitraryCurve : public baseCurve
+  class arbitraryCurve final : public baseCurve
   {
   private:
     XPointf px;
