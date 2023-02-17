@@ -36,6 +36,8 @@ namespace geom2d
     /*THELIBGEOM2D_API*/
     arbitraryCurve(const XPointf& thePx, const YPointf& thePy, const XVelocityf& theUx, const YVelocityf& theUy, const double theTmin, const double theTmax)
       :px{ thePx }, py{ thePy }, ux{ theUx }, uy{ theUy }, tmin{ theTmin }, tmax{ theTmax } {}
+
+    virtual ~arbitraryCurve() = default;
     
     // получить точку на кривой для заданного параметра t
     /*THELIBGEOM2D_API*/

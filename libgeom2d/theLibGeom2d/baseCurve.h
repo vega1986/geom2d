@@ -30,6 +30,10 @@ namespace geom2d
     THELIBGEOM2D_API
     baseCurve () = default;
 
+    THELIBGEOM2D_API
+    virtual
+    ~baseCurve() = default;
+
   public:
 
     // получить точку на кривой для заданного параметра t

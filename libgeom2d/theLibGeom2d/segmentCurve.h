@@ -15,6 +15,9 @@ namespace geom2d
   public:
     THELIBGEOM2D_API segmentCurve(const point first, const point second);
 
+    THELIBGEOM2D_API
+    virtual ~segmentCurve() = default;
+
     THELIBGEOM2D_API virtual point getPoint(double t) const;
 
     THELIBGEOM2D_API virtual point getVelocity(double t) const;

@@ -31,6 +31,9 @@ namespace geom2d
       initialize_collateral();
     }
 
+    THELIBGEOM2D_API
+    virtual ~bezierCurve() = default;
+
     // получить точку на кривой для заданного параметра t
     // концептуальная формула: sum(j from 0 to n - 1) { beta(j) * t^j * (1 - t)^(n - 1 - j) }
     THELIBGEOM2D_API
