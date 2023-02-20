@@ -35,28 +35,54 @@ namespace geom2d
   // CONCEPT //
   //         //
   /////////////
+  // Концепт класса для получения параметров кривой на участке монотонности, где одна из осей считается осью абсцисс, а другая - осью ординат
+  // Причём в качестве оси абсцисс может фигурировать как ось X так и ось Y, и наоборот для оси ординат, в зависимости от потребности алгоритма,
+  // который использует класс, удовлетворяющий данному концепту
   template <class T>
   concept CurveDataGetter = requires(const T a, const double t, const double theAny, const point & pnt)
   {
+    // получить точку кривой для заданного параметра t
     { a.getPoint(t)     } -> std::convertible_to<geom2d::point>;
+
+    // получить значение абсциссы кривой для заданного параметра t
     { a.getCoord(t)     } -> std::convertible_to<double>;
+
+    // получить минимальное значение параметра t на заданном участке монотонности
     { a.getTmin()       } -> std::convertible_to<double>;
+
+    // получить максимальное значение параметра t на заданном учестке монотонности
     { a.getTmax()       } -> std::convertible_to<double>;
 
+    // получить минимальное значение (крайнее левое) значение абсциссы точки кривой на участке монотонности
     { a.getMinCoord()   } -> std::convertible_to<double>;
+    
+    // получить точку кривой, в которой достигается минимум абсциссы точки кривой на участке монотонности
     { a.getPointOfMin() } -> std::convertible_to<geom2d::point>;
+
+    // получить значение параметра t, при котором значение абсциссы точки кривой достигает минимального значения на участке монотонности
     { a.getTofMin()     } -> std::convertible_to<double>;
 
+    // получить максимальное значение (крайнее правое) значение абсциссы точки кривой на участке монотонности
     { a.getMaxCoord()   } -> std::convertible_to<double>;
+
+    // получить точку кривой, в которой достигается максимум абсциссы точки кривой на участке монотонности
     { a.getPointOfMax() } -> std::convertible_to<geom2d::point>;
+
+    // получить значение параметра t, при котором значение абсциссы точки кривой достигает максимального значения на участке монотонности
     { a.getTofMax()     } -> std::convertible_to<double>;
 
     { a.getTofCoord(theAny)  } -> std::convertible_to<double>; // the same as getTofAbscissa
 
+    // получить значение параметра t, при котором значение абсциссы точки кривой достигает значения theAny
     { a.getTofAbscissa(theAny) } -> std::convertible_to<double>;
+
+    // получить значение параметра t, при котором значение ординаты точки кривой достигает значения theAny
     { a.getTofOrdinate(theAny) } -> std::convertible_to<double>;
 
+    // Получить абсциссу произвольной точки
     { T::abscissaOf(pnt) } -> std::convertible_to<double>;
+
+    // Получить ординату произвольной точки
     { T::ordinateOf(pnt) } -> std::convertible_to<double>;
   };
   
@@ -65,7 +91,7 @@ namespace geom2d
   // DataGetterOfX //
   //               //
   ///////////////////
-  // класс типа CurveDataGetter - для получения параметров конца ОДЗ двух кривых по оси X
+  // Данный класс удовлетворяет концепту CurveDataGetter. Здесь ось абсцисс - X, а ось ординат - Y.
   class DataGetterOfX
   {
   public:
@@ -112,7 +138,7 @@ namespace geom2d
   // DataGetterOfY //
   //               //
   ///////////////////
-  // класс типа CurveDataGetter - для получения параметров конца ОДЗ двух кривых по оси Y
+  // Данный класс удовлетворяет концепту CurveDataGetter. Здесь ось абсцисс - Y, а ось ординат - X.
   class DataGetterOfY
   {
   public:
@@ -161,7 +187,8 @@ namespace geom2d
   ///////////////////////
   namespace CommonRangeHelper
   {
-    // Ищем параметры левого конца ОДЗ
+    // Вычисляем левый общий конец ОДЗ по оси абсцисс.
+    // Концептуально возвращает max(xmin1, xmin2)
     template <CurveDataGetter dataGetter>
     CommonRangeOfTwoCurves
       ofLowest(const dataGetter& getter1, const dataGetter& getter2)
@@ -209,7 +236,8 @@ namespace geom2d
       }
     }
 
-    // Ищем параметры правого конца ОДЗ
+    // Вычисляем левый общий конец ОДЗ по оси абсцисс.
+    // Концептуально возвращает min(xmax1, xmax2)
     template <CurveDataGetter dataGetter>
     CommonRangeOfTwoCurves
       ofHighest(const dataGetter& getter1, const dataGetter& getter2)

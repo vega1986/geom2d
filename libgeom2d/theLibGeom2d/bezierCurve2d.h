@@ -9,17 +9,22 @@
 namespace geom2d
 {
 
+  // Класс криввых Безье на плоскости
   class bezierCurve final : public baseCurve
   {
   private:
 
     // вспомогательная функция,
     // вызываемая из конструктора
+    // Функция вычисляет вспомогательные коэффициенты
+    // используемые для вычисления положение точки на кривой
+    // для заданного параметра t
     THELIBGEOM2D_API
     void initialize_collateral ();
 
   public:
 
+    // Принимает в качестве входного параметра произвольный итерабельный контейнер (такой как std::list, std::vector, std::array, std::initializer_list)
     template<class pointsContainer>
     bezierCurve (const pointsContainer& container)
       : baseCurve()

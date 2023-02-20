@@ -9,6 +9,7 @@ namespace geom2d
   {
     namespace point_and_plato
     {
+      // класс дл€ расчЄта рассто€ни€ между точкой и кривой PlatoX | PlatoY.
       template <CurveDataGetter dataGetter>
       class distanceCalculator
       {

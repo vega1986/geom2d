@@ -8,7 +8,7 @@
 
 namespace geom2d
 {
-  // представляет отрезок на плоскости
+  // класс кривой, представляет отрезок на плоскости
   // vec{r}(t) = vec{m_startPoint} + t * vec{m_finishPoint - m_startPoint}
   class segmentCurve final : public baseCurve
   {

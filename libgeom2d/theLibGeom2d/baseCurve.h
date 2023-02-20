@@ -17,6 +17,7 @@ namespace geom2d
     Point = 5  // (dx / dt == 0 && dy / dt == 0)
   };
 
+  // Базовый класс параметрических кривых класса C1 на плоскости
   class baseCurve
   {
   public:
@@ -52,11 +53,11 @@ namespace geom2d
     THELIBGEOM2D_API
     virtual double parameterMax () const = 0;
 
-    // получаем значение t при котором x принимает значение theX на участке монотонности
+    // получаем значение t при котором x принимает значение theX на заданном участке монотонности
     THELIBGEOM2D_API
     const double tofX(const double tmin, const double tmax, const double theX) const;
 
-    // получаем значение t при котором y принимает значение theY на участке монотонности
+    // получаем значение t при котором y принимает значение theY на участке участке монотонности
     THELIBGEOM2D_API
     const double tofY(const double tmin, const double tmax, const double theY) const;
 

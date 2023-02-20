@@ -6,6 +6,8 @@ namespace geom2d
 {
   namespace point_and_point
   {
+    //  ласс дл€ поиска точки пересечени€ кривых Point.
+    // ¬озвращает true если точки пересекаюстс€.
     class THELIBGEOM2D_API solver
     {
     public:

@@ -11,6 +11,7 @@ namespace geom2d
 {
   namespace points_and_curve_alongaxis
   {
+    // Класс для поиска точек пересечения точек с кривой, не являющейся точкой на заданном участке монотонности.
     template <CurveDataGetter dataGetter>
     class solver
     {

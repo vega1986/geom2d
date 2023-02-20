@@ -27,14 +27,21 @@ namespace geom2d
     THELIBGEOM2D_API curveIntersector (const baseCurve & curve1, const baseCurve & curve2)
       : curveAnalizerBase(curve1, curve2){}
 
+    // выполнить анализ на пересечение - заполнить массив точек пересечения и значений параметров
     THELIBGEOM2D_API void fulfill();
 
   private:
     
+    // постпроцессинг - вызывает excludeDuplicatesFromSolution
     virtual void postProcessing();
 
+    // исключение из массива решения повторяющихся точек
     void excludeDuplicatesFromSolution();
 
+    // см. базовый класс
+    // семейство методов ниже определяет точки пересечения сегментов кривых на участках монотонности
+    // точки пересечения и соответствующие параметры добавляются в массив решения
+    // вызов этих методов зафиксирован в базовом классе, здесь они просто перегружены
     virtual void performScreen1Screen2(const double tmin1, const double tmax1, const double tmin2, const double tmax2);
 
     virtual void performScreen1Normal2(const double tmin1, const double tmax1, const double tmin2, const double tmax2);
@@ -133,7 +140,7 @@ namespace geom2d
         );
 
     // Исследуем решение, если первая кривая - точка,
-    // а вторая не плато, т.е. изменчива как по X, так и по Y.
+    // а вторая - либо Normal либо Screen
     static
       std::optional<geom2d::IntersecctionSolutionType>
         execPointAndAny
@@ -185,10 +192,9 @@ namespace geom2d
         const baseCurve& curvePlatoY
       );
 
-    // Находим точку двух кривых
-    // в предположении что они точно пересекаются 1 раз
-    // (если одна кривая убывает, а другая возрастает вдоль оси X или Y то такие кривые точно пересекаются 1 раз)
-    // так же эта функция будет справедлива когда кривые квази параллельны осям координат
+    // Находим точку пересечения двух кривых на участках монотонности
+    // если одна кривая убывает, а другая возрастает вдоль оси X или Y.
+    // Так же эта функция будет справедлива когда кривые квази параллельны разным осям координат.
     static
       std::optional<geom2d::IntersecctionSolutionType>
       findUniqueIntersection
@@ -201,13 +207,10 @@ namespace geom2d
         const baseCurve& curve2
       );
 
-    // Находим точку двух кривых
-    // в предположении что они точно пересекаются 1 раз
-    // (если одна кривая убывает, а другая возрастает вдоль оси X или Y то такие кривые точно пересекаются 1 раз)
-    // так же эта функция будет справедлива когда кривые квази параллельны осям координат
-    // Данная функция отличается от предыдущей тем, что известна референстная кривая
-    // Метод деления отрезка пополам при поиске точки пересечения применяется ко второй кривой (не референсной)
-    // Наибольший размер референсной кривой - вдоль оси X
+    // Находим единственную точку пересечения двух кривых на участках монотонности, выделяя пересечение их ОДЗ вдоль оси X и исследуя взаимное положение концов кривых на концах ОДЗ.
+    // Для нахождения точки пересечения, ОДЗ по t otherCurve делится поплам на каждом шаге цикла до уменьшения разности y-координаты точек на кривых до толеранса.
+    // Метод деления отрезка пополам при поиске точки пересечения применяется ко второй кривой (не референсной).
+    // Наибольший размер AABB референсной кривой - вдоль оси X.
     static
       std::optional<geom2d::IntersecctionSolutionType>
       findUniqueIntersectionRefAlongX
@@ -220,8 +223,10 @@ namespace geom2d
         const baseCurve& otherCurve
       );
 
-    // -//-
-    // Наибольший размер референсной кривой - вдоль оси Y
+    // Находим единственную точку пересечения двух кривых на участках монотонности, выделяя пересечение их ОДЗ вдоль оси Y и исследуя взаимное положение концов кривых на концах ОДЗ.
+    // Для нахождения точки пересечения, ОДЗ по t otherCurve делится поплам на каждом шаге цикла до уменьшения разности x-координаты точек на кривых до толеранса.
+    // Метод деления отрезка пополам при поиске точки пересечения применяется ко второй кривой (не референсной).
+    // Наибольший размер AABB референсной кривой - вдоль оси Y.
     static
       std::optional<geom2d::IntersecctionSolutionType>
       findUniqueIntersectionRefAlongY
@@ -234,7 +239,7 @@ namespace geom2d
         const baseCurve& otherCurve
       );
 
-    // Исследуем решение, если первая кривая - PlatoX, вторая - Any
+    // Исследуем решение, если первая кривая - PlatoX, вторая - Normal или Screen.
     static
       std::optional<geom2d::IntersecctionSolutionType>
       execPlatoXAndAny
@@ -247,7 +252,7 @@ namespace geom2d
         const baseCurve& curveAny
       );
 
-    // Исследуем решение, если первая кривая - PlatoY, вторая - Any
+    // Исследуем решение, если первая кривая - PlatoY, вторая - Normal или Screen.
     static
       std::optional<geom2d::IntersecctionSolutionType>
       execPlatoYAndAny
@@ -301,25 +306,38 @@ namespace geom2d
 
   public:
 
+    // печать решения в выходной поток
     THELIBGEOM2D_API void dumpIntersections(std::ostream& ost) const;
 
+    // возвращаем массив точек пересечения
     THELIBGEOM2D_API std::vector<point> getSolutionPoints() const
     {
       return solutionPoints;
     }
 
+    // возвращаем массив параметров на кривой 1 точек пересечения
     THELIBGEOM2D_API std::vector<double> getSolutionT1() const
     {
       return solutionParameterOnCurve1;
     }
 
+    // возвращаем массив параметров на кривой 2 точек пересечения
     THELIBGEOM2D_API std::vector<double> getSolutionT2() const
     {
       return solutionParameterOnCurve2;
     }
 
   public:
-    // Исследуем решение в случае произвольных (монотонных) кривых имеющих класс, допускающий только одно пересечение (но не точки!)
+    
+    // Исследуем решение для двух кривых на участках монотонности если заведомо известно, что пересечение единственно.
+    // Функция применима для кривых:
+    //  - Screen & Normal и наоборот.
+    //  - PlatoX & (Screen | Normal) и наоборот.
+    //  - PlatoY & (Screen | Normal) и наоборот.
+    //  - PlatoX & PlatoY и наоборот.
+    // Функция вызывает findUniqueIntersection.
+    // Данная функция необходима для алгоритма поиска ближайших точек двух кривых:
+    // С её помощью ищется точка пересечения нормали к одной кривой со второй кривой.
     THELIBGEOM2D_API
     static
       std::optional<geom2d::IntersecctionSolutionType>

@@ -11,6 +11,7 @@ namespace geom2d
 {
   namespace solver_normal_and_normal
   {
+    // Класс для поиска точек пересечения кривых типа Normal на участках монотонности.
     // здесь используется паттерн проектирования builder (строитель)
     // так как алгоритмически не важно вдоль оси X|Y мы идём
     template<CurveDataGetter dataGetter>

@@ -11,6 +11,7 @@ namespace geom2d
   {
     namespace two_parallel_plato
     {
+      // класс для расчёта расстояния между кривыми (PlatoX & PlatoX) | (PlatoY & PlatoY).
       template <CurveDataGetter dataGetter>
       class distanceCalculator
       {

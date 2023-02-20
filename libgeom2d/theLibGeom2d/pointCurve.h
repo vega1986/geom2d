@@ -5,7 +5,7 @@
 
 namespace geom2d
 {
-
+  //  ласс кривой, представл€ющий собой точку.
   class pointCurve final : public baseCurve
   {
   public:

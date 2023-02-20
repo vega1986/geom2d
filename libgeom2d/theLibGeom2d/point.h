@@ -9,7 +9,7 @@
 
 namespace geom2d
 {
-
+  // класс точки на плоскости
   struct point
   {
     double x{ 0.0 };

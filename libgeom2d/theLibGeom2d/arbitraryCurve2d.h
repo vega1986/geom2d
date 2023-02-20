@@ -18,7 +18,7 @@ namespace geom2d
     { a(t) } -> std::convertible_to<double>;
   };
   
-
+  // Класс произвольной кривой, заданной через функции вычисления точки и её скорости (производной)
   template<OneArgFunction XPointf, OneArgFunction YPointf, OneArgFunction XVelocityf, OneArgFunction YVelocityf>
   class arbitraryCurve final : public baseCurve
   {
@@ -34,6 +34,7 @@ namespace geom2d
   public:
 
     /*THELIBGEOM2D_API*/
+    // конструктор принимает в качестве входных параметров функции для расчёта x, y, dx/dt, dy/dt
     arbitraryCurve(const XPointf& thePx, const YPointf& thePy, const XVelocityf& theUx, const YVelocityf& theUy, const double theTmin, const double theTmax)
       :px{ thePx }, py{ thePy }, ux{ theUx }, uy{ theUy }, tmin{ theTmin }, tmax{ theTmax } {}
 

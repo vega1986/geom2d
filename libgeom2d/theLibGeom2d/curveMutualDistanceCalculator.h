@@ -9,6 +9,8 @@
 
 namespace geom2d
 {
+  // Класс для расчёта ближайших точек между двумя кривыми - использует концепцию базового класса curveAnalizerBase для поиска решения
+  // (путём деления ОДЗ каждой кривой на участки монотонности и исследвоания решения для двух кривых для каждой пары ОДЗ монотонности
   class curveMutualDistanceCalculator final : private curveAnalizerBase
   {
   public:
@@ -16,12 +18,16 @@ namespace geom2d
       curveMutualDistanceCalculator(const baseCurve& curve1, const baseCurve& curve2)
       :curveAnalizerBase(curve1, curve2), m_dist{ math::infinite::distance }, m_t1{ 0.0 }, m_t2{0.0} {}
 
+    // поиск ближайших точек двух кривых
     THELIBGEOM2D_API void fulfill();
 
+    // возвращает найденное решение
     THELIBGEOM2D_API
       const std::tuple<double, double, double> getExtrema() const;
 
   private:
+    // Функции ниже ищут решение для исходной пары кривых для различных сочетаний классов кривых на участках монотонности.
+    // Вызов этих методов зафиксирован в базовом классе. Здесь они просто переопределяются
     virtual void performScreen1Screen2(const double tmin1, const double tmax1, const double tmin2, const double tmax2);//
     virtual void performScreen1Normal2(const double tmin1, const double tmax1, const double tmin2, const double tmax2);//
     virtual void performScreen1PlatoX2(const double tmin1, const double tmax1, const double tmin2, const double tmax2);//+
@@ -47,6 +53,7 @@ namespace geom2d
 
   private:
 
+    // Расстояние между кривыми класса Point и PlatoY.
     static
       const std::tuple<double, double, double>
       execPoint_and_PlatoY
@@ -59,6 +66,7 @@ namespace geom2d
         const baseCurve& curvePlatoY
       );
 
+    // Расстояние между кривыми класса Point и PlatoX.
     static
       const std::tuple<double, double, double>
       execPoint_and_PlatoX
@@ -71,6 +79,7 @@ namespace geom2d
         const baseCurve& curvePlatoX
       );
 
+    // Расстояние между кривыми класса Point и (Screen | Normal).
     static
       const std::tuple<double, double, double>
       execPoint_and_Any
@@ -83,6 +92,7 @@ namespace geom2d
         const baseCurve& curveAny
       );
 
+    // Расстояние между кривыми класса PlatoX и PlatoY.
     static
       const std::tuple<double, double, double>
       execPlatoX_and_PlatoY
@@ -96,6 +106,7 @@ namespace geom2d
         const baseCurve& curvePlatoY
       );
 
+    // Расстояние между кривыми класса PlatoX и (Screen | Normal).
     static
       const std::tuple<double, double, double>
       execPlatoX_and_Any
@@ -109,6 +120,7 @@ namespace geom2d
         const baseCurve& curveAny
       );
 
+    // Расстояние между кривыми класса PlatoY и (Screen | Normal).
     static
       const std::tuple<double, double, double>
       execPlatoY_and_Any
@@ -122,6 +134,8 @@ namespace geom2d
         const baseCurve& curveAny
       );
 
+    // Расстояние между кривыми класса:
+    //  - Screen и Normal и наоборот.
     static
       const std::tuple<double, double, double>
       execAnyOfDifferentOrientation
@@ -134,6 +148,9 @@ namespace geom2d
         const baseCurve& curve2
       );
 
+    // Расстояние между кривыми класса:
+    //  - Screen и Screen.
+    //  - Normal и Normal.
     static
       const std::tuple<double, double, double>
       execAnyOfSameOrientation
@@ -146,6 +163,9 @@ namespace geom2d
         const baseCurve& curve2
       );
 
+    // Возвращает t curve точки пересечения кривой (на участке монотонности) и отрезка.
+    // Данная функция используется для определения точки пересечения нормали к первой кривой с другой кривой.
+    // Условие экстремума выполняется когда эта нормаль будет перпендикулярна другой кривой.
     static
       std::optional<double>
       getTofIntersectionWithSegment
@@ -158,7 +178,7 @@ namespace geom2d
 
     // Строим отрезок, перпендикулярный касательной к кривой в данной точке,
     // такой, чтобы его концы по оси X были бы [xmin; xmax] или по оси Y [ymin; ymax]
-    // в зависимости от того, каков наклон перпендикуляра
+    // в зависимости от того, каков наклон перпендикуляра.
     static
       geom2d::segmentCurve
       buildSegmentCurveAsNormalToCurve

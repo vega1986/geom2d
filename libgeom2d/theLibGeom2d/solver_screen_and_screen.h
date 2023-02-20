@@ -11,6 +11,7 @@ namespace geom2d
 {
   namespace solver_screen_and_screen
   {
+    // Класс для поиска точек пересечения кривых типа Screen на участках монотонности.
     // здесь используется паттерн проектирования builder (строитель)
     // так как алгоритмически не важно вдоль оси X|Y мы идём
     template<CurveDataGetter dataGetter>

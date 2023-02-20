@@ -23,6 +23,7 @@ namespace geom2d
       m_ymax = 0.0;
     }
 
+    // Вычисляем границы AABB для произвольного непустого контейнера точек
     template <class pointsContainer>
     void reset(const pointsContainer& points)
     {
