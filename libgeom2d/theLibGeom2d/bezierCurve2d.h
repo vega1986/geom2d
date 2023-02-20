@@ -29,7 +29,8 @@ namespace geom2d
     bezierCurve (const pointsContainer& container)
       : baseCurve()
     {
-      for (const auto p : container)
+      points.reserve(container.size());
+      for (const auto& p : container)
       {
         points.push_back(p);
       }
